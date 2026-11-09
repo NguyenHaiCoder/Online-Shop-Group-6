@@ -40,6 +40,16 @@ public class GlobalModelAdvice {
         return principal == null ? null : users.current(principal.getName());
     }
 
+    @ModelAttribute("profileForm")
+    public com.swd392.onlineshop.dto.request.ProfileForm profileForm(Principal principal) {
+        if (principal == null) {
+            return null;
+        }
+        return userRepository.findByEmail(principal.getName())
+                .map(com.swd392.onlineshop.dto.request.ProfileForm::from)
+                .orElse(null);
+    }
+
     @ModelAttribute("productCategories")
     public List<Setting> productCategories() {
         return settingService.getActiveSettingsByType(SettingType.PRODUCT_CATEGORY);

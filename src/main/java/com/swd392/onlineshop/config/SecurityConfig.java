@@ -36,7 +36,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/favicon.ico"
                         ).permitAll()
-                        .requestMatchers("/profile/**").authenticated()
+                        .requestMatchers("/profile", "/profile/**").authenticated()
                         .requestMatchers("/my-orders/**").hasRole("CUSTOMER")
                         .requestMatchers("/marketing/**").hasRole("MARKETING")
                         .requestMatchers("/sales/**").hasAnyRole("SALE", "SALE_MANAGER")

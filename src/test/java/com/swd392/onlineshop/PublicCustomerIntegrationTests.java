@@ -26,10 +26,14 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -156,5 +160,35 @@ class PublicCustomerIntegrationTests {
                         .param("address", "123 Đường Cầu Giấy, Hà Nội")
                         .param("note", "Giao trong giờ hành chính"))
                 .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    void testProfilePopulatedAndUpdatable() throws Exception {
+        // 1. Check profile is populated in model when authenticated
+        mvc.perform(get("/").with(user("sale.test@novashop.vn").roles("SALE")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("profileForm"))
+                .andExpect(model().attribute("profileForm", hasProperty("fullName", is("Sale User"))))
+                .andExpect(model().attribute("profileForm", hasProperty("email", is("sale.test@novashop.vn"))));
+
+        // 2. Access /profile directly
+        mvc.perform(get("/profile").with(user("sale.test@novashop.vn").roles("SALE")))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("profileForm"));
+
+        // 3. Update profile
+        mvc.perform(post("/profile")
+                        .with(user("sale.test@novashop.vn").roles("SALE"))
+                        .with(csrf())
+                        .param("fullName", "Sale User Updated")
+                        .param("gender", "MALE")
+                        .param("mobile", "0988888888")
+                        .param("address", "Số 1 Đại Cồ Việt, Hà Nội"))
+                .andExpect(status().is3xxRedirection());
+
+        // Verify in DB
+        User updated = userRepository.findByEmail("sale.test@novashop.vn").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals("Sale User Updated", updated.getFullName());
+        org.junit.jupiter.api.Assertions.assertEquals("0988888888", updated.getMobile());
     }
 }
