@@ -258,8 +258,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Product getPublicProductById(Long id) {
-        return productRepository.findByIdAndVisibleTrue(id)
+        Product product = productRepository.findByIdAndVisibleTrue(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm hoặc sản phẩm đã bị ẩn."));
+        if (product.getImages() != null) {
+            product.getImages().size();
+        }
+        if (product.getSpecifications() != null) {
+            product.getSpecifications().size();
+        }
+        return product;
     }
 
     private void apply(Product p, ProductForm form, Setting category, List<String[]> specs) {

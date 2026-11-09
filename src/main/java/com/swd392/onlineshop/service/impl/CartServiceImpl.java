@@ -67,6 +67,7 @@ public class CartServiceImpl implements CartService {
 
             lines.add(CartLine.builder()
                     .productId(product.getId())
+                    .productCode(product.getCode())
                     .name(product.getName())
                     .thumbnail(product.getThumbnail())
                     .unitPrice(price)

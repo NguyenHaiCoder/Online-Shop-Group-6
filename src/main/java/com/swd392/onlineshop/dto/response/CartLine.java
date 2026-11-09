@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 public class CartLine {
 
     private Long productId;
+    private String productCode;
     private String name;
     private String thumbnail;
     private BigDecimal unitPrice;

@@ -48,13 +48,20 @@ public class CartController {
     @PostMapping("/add")
     public String addToCart(@RequestParam("productId") Long productId,
                             @RequestParam(value = "quantity", defaultValue = "1") int quantity,
+                            @RequestParam(value = "redirect", required = false) String redirect,
                             HttpSession session,
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
         Long userId = getUserId(authentication);
         cartService.addToCart(session, userId, productId, quantity);
+        redirectAttributes.addFlashAttribute("addedProductId", productId);
+        redirectAttributes.addFlashAttribute("addedQuantity", quantity);
+        redirectAttributes.addFlashAttribute("openDrawer", true);
         redirectAttributes.addFlashAttribute("successMessage", "Đã thêm sản phẩm vào giỏ hàng.");
-        return "redirect:/cart";
+        if ("details".equalsIgnoreCase(redirect)) {
+            return "redirect:/products/" + productId;
+        }
+        return "redirect:/products/" + productId;
     }
 
     @PostMapping("/update")

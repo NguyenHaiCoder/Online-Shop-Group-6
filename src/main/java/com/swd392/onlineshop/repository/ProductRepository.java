@@ -35,7 +35,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @EntityGraph(attributePaths = {"category"})
     List<Product> findByVisibleTrue(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"category", "images"})
+    @EntityGraph(attributePaths = {"category"})
     Optional<Product> findByIdAndVisibleTrue(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

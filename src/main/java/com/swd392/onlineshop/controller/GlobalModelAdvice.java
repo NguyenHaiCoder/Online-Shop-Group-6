@@ -98,4 +98,14 @@ public class GlobalModelAdvice {
         }
         return cartService.getCartCount(session, userId);
     }
+
+    @ModelAttribute("cartDrawerLines")
+    public List<com.swd392.onlineshop.dto.response.CartLine> cartDrawerLines(HttpServletRequest request, Authentication authentication) {
+        HttpSession session = request != null ? request.getSession(false) : null;
+        Long userId = null;
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            userId = userRepository.findByEmail(authentication.getName()).map(User::getId).orElse(null);
+        }
+        return cartService.getCartLines(session, userId);
+    }
 }

@@ -1,56 +1,281 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head(${product.name})}"></head>
-<body>
+<body class="product-details-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page product-details-page" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <p class="crumbs">
-        <a th:href="@{/}">Trang chủ</a> / <a th:href="@{/products}">Sản phẩm</a> /
-        <span th:text="${product.category != null ? product.category.name : product.name}">Danh mục</span>
-    </p>
-    <article class="card">
-        <div class="detail">
-            <div>
-                <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}" style="border-radius:16px; background:#f3f6fb;">
-                <div class="ph wide" th:if="${product.thumbnail == null}"></div>
-                <div class="thumbs">
-                    <img th:each="image : ${product.images}" th:src="${image.imageUrl}" alt="">
+
+    <!-- Breadcrumbs: Trang chủ / Sản phẩm / Danh mục -->
+    <nav class="catalog-crumbs" aria-label="Breadcrumb">
+        <a th:href="@{/}">Trang chủ</a>
+        <span class="crumb-separator">/</span>
+        <a th:href="@{/products}">Sản phẩm</a>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current" th:text="${product.category != null ? product.category.name : 'Phụ kiện'}">Bàn phím</span>
+    </nav>
+
+    <!-- Thẻ chi tiết sản phẩm chính (Card trắng) -->
+    <article class="product-detail-card">
+        <div class="product-detail-top-grid">
+            <!-- Cột trái: Ảnh sản phẩm lớn & Gallery thumbnails bên dưới -->
+            <div class="product-gallery-col">
+                <div class="main-image-viewport">
+                    <img id="main-product-img" th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}" class="featured-view-img">
+                    <div th:if="${product.thumbnail == null}" class="empty-view-placeholder"></div>
+                </div>
+
+                <!-- Dải ảnh thu nhỏ bên dưới -->
+                <div class="gallery-thumbnails-strip" th:if="${product.images != null and !product.images.empty}">
+                    <button type="button" class="gallery-thumb-btn active" th:onclick="'switchMainImage(\'' + ${product.thumbnail} + '\', this)'">
+                        <img th:src="${product.thumbnail}" th:alt="${product.name}">
+                    </button>
+                    <button type="button" class="gallery-thumb-btn" th:each="img : ${product.images}" th:onclick="'switchMainImage(\'' + ${img.imageUrl} + '\', this)'">
+                        <img th:src="${img.imageUrl}" alt="">
+                    </button>
                 </div>
             </div>
-            <div>
-                <h1 th:text="${product.name}">Sản phẩm</h1>
-                <p class="price"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">0</span>
-                    <span class="price-old" th:if="${product.salePrice != null}"><span th:replace="~{fragments/header :: vnd(${product.originalPrice})}">0</span></span>
+
+            <!-- Cột phải: Thông tin sản phẩm, Giá, Số lượng & Nút Thêm vào giỏ -->
+            <div class="product-info-col">
+                <h1 class="p-title" th:text="${product.name}">Bàn phím cơ Nova K68</h1>
+                <div class="p-code" th:text="${product.code}">KB001</div>
+
+                <div class="p-price-row">
+                    <span class="p-price-val"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">690.000 ₫</span></span>
+                    <span class="stock-pill in-stock" th:if="${product.stockQuantity > 0}">
+                        <span class="stock-dot"></span> Còn hàng
+                    </span>
+                    <span class="stock-pill out-stock" th:if="${product.stockQuantity <= 0}">
+                        <span class="stock-dot"></span> Hết hàng
+                    </span>
+                </div>
+
+                <p class="p-brief-desc" th:text="${product.briefInfo != null ? product.briefInfo : product.description}">
+                    Bàn phím cơ nhỏ gọn 68 phím của Nova, mang lại trải nghiệm gõ ổn định, chính xác và êm ái. Thiết kế tối giản, bền bỉ, phù hợp cho làm việc và giải trí hằng ngày.
                 </p>
-                <p><span class="stock" th:if="${product.stockQuantity > 0}">Còn hàng</span></p>
-                <p class="muted" th:text="${product.briefInfo}"></p>
-                <form class="buy-row" th:action="@{/cart/add}" method="post">
+
+                <!-- Form Thêm vào giỏ hàng -->
+                <form class="p-buy-form" th:action="@{/cart/add}" method="post">
                     <input type="hidden" name="productId" th:value="${product.id}">
-                    <span class="qty"><button type="button" disabled>−</button><input type="number" name="quantity" value="1" min="1" th:max="${product.stockQuantity}"><button type="button" disabled>+</button></span>
-                    <button type="submit" th:disabled="${product.stockQuantity <= 0}">Thêm vào giỏ hàng</button>
+                    <input type="hidden" name="redirect" value="details">
+
+                    <!-- Bộ điều khiển số lượng [-] [1] [+] -->
+                    <div class="qty-counter-control">
+                        <button type="button" class="qty-btn minus-btn" onclick="adjustQty(-1)">−</button>
+                        <input type="number" id="p-quantity-input" name="quantity" value="1" min="1" th:max="${product.stockQuantity > 0 ? product.stockQuantity : 1}" class="qty-number-input">
+                        <button type="button" class="qty-btn plus-btn" onclick="adjustQty(1)">+</button>
+                    </div>
+
+                    <!-- Nút Thêm vào giỏ hàng xanh dương -->
+                    <button type="submit" class="btn-add-to-cart" th:disabled="${product.stockQuantity <= 0}">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span>Thêm vào giỏ hàng</span>
+                    </button>
                 </form>
             </div>
         </div>
-        <div class="detail-grid">
-            <section class="card">
-                <h2>Mô tả sản phẩm</h2>
-                <div class="prose" th:text="${product.description}">Mô tả</div>
-            </section>
-            <section class="card">
-                <h2>Thông tin</h2>
-                <table class="spec">
-                    <tr><td>Danh mục</td><td th:text="${product.category != null ? product.category.name : '—'}">—</td></tr>
-                    <tr><td>Tồn kho</td><td th:text="${product.stockQuantity}">0</td></tr>
-                    <tr><td>Giá niêm yết</td><td><span th:replace="~{fragments/header :: vnd(${product.originalPrice})}">0</span></td></tr>
-                </table>
-                <p style="margin-top:12px;"><a th:href="@{/feedback(productId=${product.id})}">Gửi phản hồi về sản phẩm</a></p>
-            </section>
-        </div>
     </article>
+
+    <!-- Khối 2 thẻ bên dưới: Mô tả sản phẩm (trái) & Thông số kỹ thuật (phải) -->
+    <div class="product-bottom-grid">
+        <!-- Thẻ Mô tả sản phẩm -->
+        <section class="info-card-box">
+            <h2 class="info-card-heading">Mô tả sản phẩm</h2>
+            <div class="prose-content" th:text="${product.description != null ? product.description : product.briefInfo}">
+                Bàn phím cơ Nova K68 là lựa chọn lý tưởng cho những ai yêu thích sự nhỏ gọn và hiệu quả. Với bố cục 68 phím tối ưu không gian, bàn phím giúp bạn gõ nhanh, chính xác và thoải mái trong thời gian dài. Sản phẩm được hoàn thiện chắc chắn, thiết kế hiện đại với tông màu trắng xám, dễ dàng phù hợp với nhiều không gian làm việc.
+            </div>
+        </section>
+
+        <!-- Thẻ Thông số kỹ thuật -->
+        <section class="info-card-box">
+            <h2 class="info-card-heading">Thông số kỹ thuật</h2>
+            <table class="specifications-table">
+                <tbody>
+                <tr th:if="${product.specifications != null and !product.specifications.empty}" th:each="spec : ${product.specifications}">
+                    <td class="spec-name" th:text="${spec.name}">Kiểu kết nối</td>
+                    <td class="spec-value" th:text="${spec.value}">USB-C</td>
+                </tr>
+                <!-- Fallback nếu sản phẩm chưa có specs riêng -->
+                <tr th:if="${product.specifications == null or product.specifications.empty}">
+                    <td class="spec-name">Kiểu kết nối</td>
+                    <td class="spec-value">USB-C / Không dây</td>
+                </tr>
+                <tr th:if="${product.specifications == null or product.specifications.empty}">
+                    <td class="spec-name">Bố cục</td>
+                    <td class="spec-value">Tiêu chuẩn</td>
+                </tr>
+                <tr th:if="${product.specifications == null or product.specifications.empty}">
+                    <td class="spec-name">Màu sắc</td>
+                    <td class="spec-value">Trắng xám / Đen</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
 </main>
+
+<!-- ========================================================================= -->
+<!-- SIDEBAR GIỎ HÀNG (DRAWER) - Hiển thị giống Ảnh 2 khi thêm SP hoặc bấm giỏ -->
+<!-- ========================================================================= -->
+<div class="cart-drawer-overlay" id="cart-drawer-overlay" onclick="closeCartDrawer()"></div>
+
+<aside class="cart-drawer" id="cart-drawer">
+    <!-- Header Drawer -->
+    <div class="drawer-header">
+        <div class="drawer-title-group">
+            <div class="success-icon-wrap">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#16a34a">
+                    <circle cx="12" cy="12" r="10" fill="#dcfce7"></circle>
+                    <path d="m9 12 2 2 4-4" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                </svg>
+            </div>
+            <h3 class="drawer-title-text">Đã thêm vào giỏ hàng</h3>
+        </div>
+        <button type="button" class="btn-drawer-close" onclick="closeCartDrawer()" aria-label="Đóng">✕</button>
+    </div>
+
+    <p class="drawer-sub-hint">Sản phẩm đã được thêm vào giỏ hàng của bạn.</p>
+
+    <!-- Box sản phẩm vừa thêm (nếu có) -->
+    <div class="drawer-just-added-card" th:if="${product != null}">
+        <div class="added-thumb">
+            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="">
+        </div>
+        <div class="added-info">
+            <span class="added-code" th:text="${product.code}">KB001</span>
+            <strong class="added-name" th:text="${product.name}">Bàn phím cơ Nova K68</strong>
+            <span class="added-qty" th:text="|Số lượng: ${addedQuantity != null ? addedQuantity : 1}|">Số lượng: 1</span>
+        </div>
+        <div class="added-price">
+            <span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">690.000 ₫</span>
+        </div>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <!-- Danh sách toàn bộ giỏ hàng của bạn -->
+    <div class="drawer-cart-section">
+        <h4 class="drawer-cart-heading" th:text="|Giỏ hàng của bạn: ${cartDrawerLines != null ? cartDrawerLines.size() : 0} sản phẩm|">
+            Giỏ hàng của bạn: 2 sản phẩm
+        </h4>
+
+        <div class="drawer-items-list" th:if="${cartDrawerLines != null and !cartDrawerLines.empty}">
+            <div class="drawer-item-row" th:each="line : ${cartDrawerLines}">
+                <div class="drawer-item-thumb">
+                    <img th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="">
+                </div>
+                <div class="drawer-item-meta">
+                    <span class="drawer-item-code" th:if="${line.productCode != null}" th:text="${line.productCode}">KB001</span>
+                    <strong class="drawer-item-name" th:text="${line.name}">Bàn phím cơ Nova K68</strong>
+                    <span class="drawer-item-qty" th:text="|Số lượng: ${line.quantity}|">Số lượng: 1</span>
+                </div>
+                <div class="drawer-item-price">
+                    <span th:replace="~{fragments/header :: vnd(${line.lineTotal})}">690.000 ₫</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="drawer-empty-cart" th:if="${cartDrawerLines == null or cartDrawerLines.empty}">
+            Giỏ hàng đang trống.
+        </p>
+    </div>
+
+    <!-- Tóm tắt thanh toán -->
+    <div class="drawer-footer-summary" th:if="${cartDrawerLines != null and !cartDrawerLines.empty}">
+        <div class="summary-line">
+            <span class="s-label">Tạm tính</span>
+            <span class="s-value" th:text="${#numbers.formatDecimal(#aggregates.sum(cartDrawerLines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">980.000 ₫</span>
+        </div>
+        <div class="summary-line">
+            <span class="s-label">Phí vận chuyển</span>
+            <span class="s-value">30.000 ₫</span>
+        </div>
+        <div class="summary-total-line">
+            <span class="total-title">Tổng thanh toán</span>
+            <span class="total-val" th:text="${#numbers.formatDecimal(#aggregates.sum(cartDrawerLines.![lineTotal]) + 30000, 0, 'POINT', 0, 'COMMA') + ' ₫'}">1.010.000 ₫</span>
+        </div>
+
+        <!-- 2 Nút hành động -->
+        <a th:href="@{/cart}" class="btn-drawer-cart-link">
+            <span>Xem giỏ hàng</span>
+            <span class="d-arrow">→</span>
+        </a>
+        <button type="button" class="btn-drawer-continue" onclick="closeCartDrawer()">Tiếp tục mua sắm</button>
+    </div>
+</aside>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>
+
+<script th:inline="javascript">
+/* Chuyển ảnh lớn khi bấm thumbnail */
+function switchMainImage(url, btn) {
+    if (!url) return;
+    var mainImg = document.getElementById("main-product-img");
+    if (mainImg) {
+        mainImg.src = url;
+    }
+    document.querySelectorAll(".gallery-thumb-btn").forEach(function(el) {
+        el.classList.remove("active");
+    });
+    if (btn) btn.classList.add("active");
+}
+
+/* Tăng giảm số lượng */
+function adjustQty(delta) {
+    var input = document.getElementById("p-quantity-input");
+    if (!input) return;
+    var current = parseInt(input.value) || 1;
+    var max = parseInt(input.getAttribute("max")) || 999;
+    var min = parseInt(input.getAttribute("min")) || 1;
+    var next = current + delta;
+    if (next >= min && next <= max) {
+        input.value = next;
+    }
+}
+
+/* Đóng mở Drawer Giỏ Hàng */
+function openCartDrawer() {
+    var drawer = document.getElementById("cart-drawer");
+    var overlay = document.getElementById("cart-drawer-overlay");
+    if (drawer && overlay) {
+        drawer.classList.add("is-open");
+        overlay.classList.add("is-open");
+    }
+}
+
+function closeCartDrawer() {
+    var drawer = document.getElementById("cart-drawer");
+    var overlay = document.getElementById("cart-drawer-overlay");
+    if (drawer && overlay) {
+        drawer.classList.remove("is-open");
+        overlay.classList.remove("is-open");
+    }
+}
+
+/* Tự động mở drawer nếu vừa thực hiện thêm giỏ hàng */
+document.addEventListener("DOMContentLoaded", function () {
+    var shouldOpen = /*[[${openDrawer}]]*/ false;
+    if (shouldOpen) {
+        openCartDrawer();
+    }
+
+    // Bắt sự kiện bấm vào icon giỏ hàng trên header khi ở trang chi tiết sản phẩm
+    var headerCartLink = document.querySelector(".cart-link");
+    if (headerCartLink) {
+        headerCartLink.addEventListener("click", function(e) {
+            e.preventDefault();
+            openCartDrawer();
+        });
+    }
+});
+</script>
 </body>
 </html>

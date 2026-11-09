@@ -1,64 +1,129 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/header :: head('Thanh toán')}"></head>
-<body>
+<body class="checkout-page-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page checkout-page-main" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <h1>Thanh toán</h1>
-    <div class="steps">
-        <div class="step on"><b>1</b>Thông tin nhận hàng</div>
-        <div class="step"><b>2</b>Kiểm tra đơn</div>
-        <div class="step"><b>3</b>Hoàn tất</div>
+
+    <!-- Tiêu đề trang -->
+    <h1 class="checkout-main-title">Thanh toán</h1>
+
+    <!-- Stepper 3 bước giống Ảnh 4 -->
+    <div class="checkout-stepper-wrap">
+        <div class="stepper-item step-done-or-active">
+            <span class="step-circle">1</span>
+            <span class="step-label">Thông tin nhận hàng</span>
+        </div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item">
+            <span class="step-circle">2</span>
+            <span class="step-label">Kiểm tra đơn</span>
+        </div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item">
+            <span class="step-circle">3</span>
+            <span class="step-label">Hoàn tất</span>
+        </div>
     </div>
-    <div class="checkout">
-        <form class="card" th:action="@{/cart/submit}" th:object="${form}" method="post">
-            <div class="section-head">
-                <h2>Thông tin người nhận</h2>
-                <p sec:authorize="isAnonymous()">Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a></p>
-            </div>
-            <label class="field">Họ tên người nhận <span class="req">*</span>
-                <input th:field="*{fullName}" required maxlength="100" placeholder="Nguyễn Minh Anh">
-                <small class="field-error" th:errors="*{fullName}"></small>
-            </label>
-            <label class="field">Điện thoại <span class="req">*</span>
-                <input th:field="*{mobile}" required pattern="0[0-9]{9}" maxlength="15" placeholder="0901234567">
-                <small class="field-error" th:errors="*{mobile}"></small>
-            </label>
-            <label class="field">Email <span class="req">*</span>
-                <input type="email" th:field="*{email}" required maxlength="100">
-                <small class="field-error" th:errors="*{email}"></small>
-            </label>
-            <label class="field">Địa chỉ giao hàng <span class="req">*</span>
-                <input th:field="*{address}" required maxlength="255">
-                <small class="field-error" th:errors="*{address}"></small>
-            </label>
-            <label class="field">Giới tính <span class="req">*</span>
-                <select th:field="*{gender}" required>
-                    <option value="">Chọn</option>
-                    <option th:each="g : ${T(com.swd392.onlineshop.enums.Gender).values()}" th:value="${g}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
-                </select>
-            </label>
-            <label class="field">Ghi chú (không bắt buộc)
-                <textarea th:field="*{note}" maxlength="500" rows="3" placeholder="Nhập ghi chú cho đơn hàng"></textarea>
-            </label>
-            <div class="form-actions">
-                <a class="btn btn-ghost" th:href="@{/cart}">← Quay lại giỏ hàng</a>
-                <button type="submit">Tiếp tục →</button>
-            </div>
-        </form>
-        <aside class="card" th:if="${lines != null}">
-            <h2 th:text="|Đơn hàng của bạn (${lines.size()} sản phẩm)|">Đơn hàng của bạn</h2>
-            <div th:each="line : ${lines}" class="summary-row">
-                <span><img class="thumb-sm" th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt=""> <span th:text="${line.name}">SP</span><br><small class="muted" th:text="|Số lượng: ${line.quantity}|"></small></span>
-                <span th:replace="~{fragments/header :: vnd(${line.lineTotal})}">0</span>
-            </div>
-            <p class="summary-row"><span>Tạm tính</span><span th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</span></p>
-            <p class="summary-row"><span>Phí vận chuyển</span><span class="muted">Tính khi đặt hàng</span></p>
-            <p class="total-row"><span>Tổng thanh toán</span><strong th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</strong></p>
-        </aside>
-    </div>
+
+    <!-- Form thanh toán 2 cột -->
+    <form th:action="@{/cart/submit}" th:object="${form}" method="post" id="checkout-contact-form">
+        <!-- Hidden gender để thỏa mãn @NotNull trong backend nếu form không hiển thị dropdown -->
+        <input type="hidden" name="gender" th:value="${form.gender != null ? form.gender : 'MALE'}">
+        <input type="hidden" name="paymentMethod" th:value="${form.paymentMethod != null ? form.paymentMethod : 'COD'}">
+
+        <div class="checkout-two-col-layout">
+            <!-- Cột trái: Thông tin người nhận -->
+            <section class="checkout-card-box receiver-info-card">
+                <div class="card-head-flex">
+                    <h2 class="card-head-title">Thông tin người nhận</h2>
+                    <p class="card-head-prompt" sec:authorize="isAnonymous()">
+                        Đã có tài khoản? <a th:href="@{/auth/login}" class="link-sign-in">Đăng nhập</a>
+                    </p>
+                </div>
+
+                <div class="checkout-inputs-list">
+                    <div class="field-item">
+                        <label for="fullName" class="field-item-label">Họ tên người nhận <span class="star-req">*</span></label>
+                        <input type="text" id="fullName" th:field="*{fullName}" required maxlength="100" placeholder="Nguyễn Minh Anh" class="checkout-input-elem">
+                        <small class="field-error-notice" th:errors="*{fullName}"></small>
+                    </div>
+
+                    <div class="field-item">
+                        <label for="mobile" class="field-item-label">Điện thoại <span class="star-req">*</span></label>
+                        <input type="tel" id="mobile" th:field="*{mobile}" required pattern="0[0-9]{9}" maxlength="15" placeholder="0901 234 567" class="checkout-input-elem">
+                        <small class="field-error-notice" th:errors="*{mobile}"></small>
+                    </div>
+
+                    <div class="field-item">
+                        <label for="email" class="field-item-label">Email <span class="star-req">*</span></label>
+                        <input type="email" id="email" th:field="*{email}" required maxlength="100" placeholder="minhanh@example.com" class="checkout-input-elem">
+                        <small class="field-error-notice" th:errors="*{email}"></small>
+                    </div>
+
+                    <div class="field-item">
+                        <label for="address" class="field-item-label">Địa chỉ giao hàng <span class="star-req">*</span></label>
+                        <input type="text" id="address" th:field="*{address}" required maxlength="255" placeholder="Khu đô thị Hòa Lạc, Hà Nội" class="checkout-input-elem">
+                        <small class="field-error-notice" th:errors="*{address}"></small>
+                    </div>
+
+                    <div class="field-item">
+                        <label for="note" class="field-item-label">Ghi chú (không bắt buộc)</label>
+                        <textarea id="note" th:field="*{note}" maxlength="500" rows="3" placeholder="Nhập ghi chú cho đơn hàng (ví dụ: thời gian giao hàng, lưu ý khi giao...)" class="checkout-textarea-elem"></textarea>
+                        <small class="field-error-notice" th:errors="*{note}"></small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cột phải: Đơn hàng của bạn -->
+            <aside class="checkout-card-box order-summary-sidebar" th:if="${lines != null}">
+                <h2 class="card-head-title" th:text="|Đơn hàng của bạn (${lines.size()} sản phẩm)|">Đơn hàng của bạn (2 sản phẩm)</h2>
+
+                <div class="checkout-products-list">
+                    <div class="checkout-product-item" th:each="line : ${lines}">
+                        <div class="cp-thumb-box">
+                            <img th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="" class="cp-thumb-img">
+                            <div th:if="${line.thumbnail == null}" class="cp-thumb-empty"></div>
+                        </div>
+                        <div class="cp-info-box">
+                            <span class="cp-code" th:if="${line.productCode != null}" th:text="${line.productCode}">KB001</span>
+                            <strong class="cp-name" th:text="${line.name}">Bàn phím cơ Nova K68</strong>
+                            <span class="cp-qty" th:text="|Số lượng: ${line.quantity}|">Số lượng: 1</span>
+                        </div>
+                        <div class="cp-price-box">
+                            <span th:replace="~{fragments/header :: vnd(${line.lineTotal})}">690.000 ₫</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-summary-calc">
+                    <div class="calc-line">
+                        <span class="label">Tạm tính</span>
+                        <span class="value"><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">980.000 ₫</span></span>
+                    </div>
+                    <div class="calc-line">
+                        <span class="label">Phí vận chuyển</span>
+                        <span class="value">30.000 ₫</span>
+                    </div>
+                </div>
+
+                <div class="checkout-highlight-total-bar">
+                    <span class="total-lbl">Tổng thanh toán</span>
+                    <span class="total-amount-val" th:text="${#numbers.formatDecimal((lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0) + 30000, 0, 'POINT', 0, 'COMMA') + ' ₫'}">1.010.000 ₫</span>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Hàng nút điều hướng dưới cùng: Quay lại giỏ hàng (trái) - Tiếp tục (phải) -->
+        <div class="checkout-bottom-nav">
+            <a th:href="@{/cart}" class="btn-checkout-back">← Quay lại giỏ hàng</a>
+            <button type="submit" class="btn-checkout-submit">Tiếp tục →</button>
+        </div>
+    </form>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>

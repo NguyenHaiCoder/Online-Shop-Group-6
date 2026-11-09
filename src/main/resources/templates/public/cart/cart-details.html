@@ -1,54 +1,147 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Giỏ hàng')}"></head>
-<body>
+<body class="cart-details-page-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content" th:with="blocked=${lines == null || lines.empty || !#lists.isEmpty(lines.?[warning != null])}">
+
+<main class="page cart-details-page" id="content" th:with="blocked=${lines == null || lines.empty || !#lists.isEmpty(lines.?[warning != null])}">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <p class="crumbs"><a th:href="@{/}">Trang chủ</a> / <span>Giỏ hàng</span></p>
-    <h1>Giỏ hàng của bạn</h1>
-    <p class="muted" th:text="${lines == null ? '0 sản phẩm' : lines.size() + ' sản phẩm'}">0 sản phẩm</p>
-    <div class="banner" th:if="${session.EDITING_ORDER_ID != null}">
-        <span th:text="|Đang sửa đơn #${session.EDITING_ORDER_ID}|">Đang sửa đơn</span>
-        <form th:action="@{/cart/cancel-edit}" method="post"><button class="btn-ghost" type="submit">Hủy sửa</button></form>
+
+    <!-- Breadcrumb: Trang chủ > Giỏ hàng -->
+    <nav class="cart-crumbs" aria-label="Breadcrumb">
+        <a th:href="@{/}">Trang chủ</a>
+        <span class="crumb-sep">›</span>
+        <span class="crumb-now">Giỏ hàng</span>
+    </nav>
+
+    <!-- Header Trang: Giỏ hàng của bạn + số lượng sản phẩm -->
+    <div class="cart-page-header">
+        <h1 class="cart-heading-title">Giỏ hàng của bạn</h1>
+        <p class="cart-items-counter" th:text="${lines == null ? '0 sản phẩm' : lines.size() + ' sản phẩm'}">2 sản phẩm</p>
     </div>
-    <div class="cart-layout" th:if="${lines != null && !lines.empty}">
-        <section class="card">
-            <div class="cart-line" style="color:#64748b; font-size:13px;"><span></span><span>Sản phẩm</span><span>Đơn giá</span><span>Số lượng</span><span>Thành tiền</span></div>
-            <div class="cart-line" th:each="line : ${lines}">
-                <img class="thumb-sm" th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="">
-                <div class="ph" th:if="${line.thumbnail == null}"></div>
-                <div>
-                    <a th:href="@{|/products/${line.productId}|}" th:text="${line.name}">Sản phẩm</a>
-                    <p class="warn-text" th:if="${line.warning != null}" th:text="${line.warning}"></p>
-                    <p th:if="${line.warning == null}"><span class="stock">Còn hàng</span></p>
-                </div>
-                <span th:replace="~{fragments/header :: vnd(${line.unitPrice})}">0</span>
-                <form th:action="@{/cart/update}" method="post" class="qty">
-                    <input type="hidden" name="productId" th:value="${line.productId}">
-                    <input type="number" name="quantity" min="1" th:value="${line.quantity}">
-                    <button type="submit">Lưu</button>
-                </form>
-                <div>
-                    <strong th:replace="~{fragments/header :: vnd(${line.lineTotal})}">0</strong>
-                    <form th:action="@{/cart/remove}" method="post"><input type="hidden" name="productId" th:value="${line.productId}"><button class="linkish" type="submit" style="background:none; color:#2563eb;">Bỏ khỏi giỏ</button></form>
+
+    <!-- Thông báo nếu đang chỉnh sửa đơn hàng cũ -->
+    <div class="cart-edit-order-alert" th:if="${session.EDITING_ORDER_ID != null}">
+        <span th:text="|Đang sửa đơn #${session.EDITING_ORDER_ID}. Bạn có thể thay đổi số lượng hoặc thêm bớt sản phẩm.|">Đang sửa đơn</span>
+        <form th:action="@{/cart/cancel-edit}" method="post">
+            <button class="btn-cancel-edit-order" type="submit">Hủy sửa đơn</button>
+        </form>
+    </div>
+
+    <!-- Layout 2 cột: Bảng sản phẩm bên trái, Thẻ tóm tắt bên phải -->
+    <div class="cart-two-col-layout" th:if="${lines != null && !lines.empty}">
+        <!-- Cột trái: Bảng danh sách sản phẩm trong giỏ -->
+        <section class="cart-items-box-card">
+            <!-- Header bảng -->
+            <div class="cart-table-head">
+                <span class="col-head-product">Sản phẩm</span>
+                <span class="col-head-price">Đơn giá</span>
+                <span class="col-head-qty">Số lượng</span>
+                <span class="col-head-subtotal">Thành tiền</span>
+            </div>
+
+            <!-- Từng dòng sản phẩm -->
+            <div class="cart-table-body">
+                <div class="cart-product-row" th:each="line : ${lines}">
+                    <!-- Cột 1: Thông tin sản phẩm (Ảnh, Tên, Mã, Còn hàng) -->
+                    <div class="product-info-cell">
+                        <div class="product-img-box">
+                            <img th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="" class="p-thumb">
+                            <div th:if="${line.thumbnail == null}" class="p-thumb-empty"></div>
+                        </div>
+                        <div class="product-meta-desc">
+                            <a th:href="@{|/products/${line.productId}|}" class="p-name-link" th:text="${line.name}">Bàn phím cơ Nova K68</a>
+                            <div class="p-code-tag" th:if="${line.productCode != null}" th:text="|Mã: ${line.productCode}|">Mã: KB001</div>
+
+                            <!-- Tag tồn kho / Cảnh báo -->
+                            <div class="p-stock-indicator">
+                                <span class="stock-pill in-stock" th:if="${line.warning == null}">
+                                    <span class="stock-dot"></span> Còn hàng
+                                </span>
+                                <span class="stock-pill warn-pill" th:if="${line.warning != null}" th:text="${line.warning}">
+                                    Kho chỉ còn 2 SP
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột 2: Đơn giá -->
+                    <div class="product-unit-price-cell">
+                        <span class="unit-price-text"><span th:replace="~{fragments/header :: vnd(${line.unitPrice})}">690.000 ₫</span></span>
+                    </div>
+
+                    <!-- Cột 3: Bộ chỉnh số lượng [-] [1] [+] -->
+                    <div class="product-qty-cell">
+                        <form th:action="@{/cart/update}" method="post" class="cart-qty-form">
+                            <input type="hidden" name="productId" th:value="${line.productId}">
+                            <div class="cart-qty-stepper">
+                                <button type="submit" name="quantity" th:value="${line.quantity - 1}" class="step-btn minus" th:disabled="${line.quantity <= 1}">−</button>
+                                <span class="qty-num-val" th:text="${line.quantity}">1</span>
+                                <button type="submit" name="quantity" th:value="${line.quantity + 1}" class="step-btn plus">+</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Cột 4: Thành tiền + Nút Bỏ khỏi giỏ -->
+                    <div class="product-line-total-cell">
+                        <span class="line-total-bold"><span th:replace="~{fragments/header :: vnd(${line.lineTotal})}">690.000 ₫</span></span>
+                        <form th:action="@{/cart/remove}" method="post" class="remove-cart-form">
+                            <input type="hidden" name="productId" th:value="${line.productId}">
+                            <button class="btn-remove-line" type="submit">Bỏ khỏi giỏ</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
-        <aside class="card">
-            <h2>Tóm tắt đơn hàng</h2>
-            <p class="summary-row"><span>Tiền hàng</span><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">0</span></p>
-            <p class="summary-row"><span>Phí giao hàng</span><span class="muted">Tính khi đặt hàng</span></p>
-            <p class="total-row"><span>Tạm tính</span><strong th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</strong></p>
-            <a class="btn btn-block" th:href="@{/cart/contact}" th:classappend="${blocked} ? 'is-disabled'" style="display:block; text-align:center; margin-top:12px;">Tiến hành đặt hàng →</a>
-            <a class="btn btn-ghost btn-block" th:href="@{/products}" style="display:block; text-align:center; margin-top:8px;">Tiếp tục mua sắm</a>
+
+        <!-- Cột phải: Thẻ Tóm tắt đơn hàng (Giống Ảnh 3) -->
+        <aside class="cart-order-summary-card">
+            <h2 class="summary-card-title">Tóm tắt đơn hàng</h2>
+
+            <div class="summary-calc-rows">
+                <div class="calc-row">
+                    <span class="calc-label" th:text="|Tiền hàng (${lines.size()} sản phẩm)|">Tiền hàng (2 sản phẩm)</span>
+                    <span class="calc-val"><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">980.000 ₫</span></span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">Phí giao hàng</span>
+                    <span class="calc-val muted-shipping">Tính khi đặt hàng</span>
+                </div>
+            </div>
+
+            <div class="summary-total-divider"></div>
+
+            <div class="summary-subtotal-row">
+                <span class="subtotal-label">Tạm tính</span>
+                <span class="subtotal-val"><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">980.000 ₫</span></span>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="summary-buttons-stack">
+                <a class="btn-proceed-checkout" th:href="@{/cart/contact}" th:classappend="${blocked} ? 'is-disabled'">
+                    <span>Tiến hành đặt hàng</span>
+                    <span class="btn-arrow">→</span>
+                </a>
+                <a class="btn-continue-shopping" th:href="@{/products}">Tiếp tục mua sắm</a>
+            </div>
         </aside>
     </div>
-    <section class="card" th:if="${lines == null || lines.empty}">
-        <p class="empty">Giỏ hàng trống.</p>
-        <a class="btn" th:href="@{/products}">Khám phá sản phẩm</a>
-    </section>
+
+    <!-- Màn hình giỏ hàng trống -->
+    <div class="cart-empty-state-card" th:if="${lines == null || lines.empty}">
+        <div class="empty-cart-icon">
+            <svg viewBox="0 0 24 24" width="48" height="48" stroke="#94a3b8" stroke-width="1.75" fill="none">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+        </div>
+        <h2 class="empty-cart-title">Giỏ hàng của bạn đang trống</h2>
+        <p class="empty-cart-hint">Hãy chọn thêm các sản phẩm tuyệt vời của Nova vào giỏ hàng nhé.</p>
+        <a class="btn-browse-products" th:href="@{/products}">Khám phá sản phẩm ngay</a>
+    </div>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>
