@@ -1,46 +1,57 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Bài viết')}"></head>
+<head th:replace="~{fragments/header :: head('Chi tiết bài viết')}"></head>
 <body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
-        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm bài viết' : 'Chi tiết bài viết')}"></header>
+    <div class="staff-content" id="content">
+        <!--/* MP03 Chi tiet bai viet */-->
+        <header th:replace="~{fragments/staff-menu :: top('Chi tiết bài viết')}"></header>
+        <div class="mk-bar">
+            <a class="mk-back" th:href="@{/marketing/posts}"><span th:replace="~{fragments/marketing :: icon('back')}"></span>Quay lại danh sách</a>
+            <div class="mk-actions">
+                <a class="btn" th:href="@{|/marketing/posts/${post.id}/edit|}"><span th:replace="~{fragments/marketing :: icon('edit')}"></span>Chỉnh sửa</a>
+                <button th:if="${post.visible}" type="button" class="mk-outline" data-open="hide-post"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span>Ẩn bài viết</button>
+                <form th:unless="${post.visible}" th:action="@{|/marketing/posts/${post.id}/toggle|}" method="post">
+                    <input type="hidden" name="from" value="detail">
+                    <button type="submit" class="mk-outline"><span th:replace="~{fragments/marketing :: icon('eye')}"></span>Hiện bài viết</button>
+                </form>
+            </div>
+        </div>
         <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="card form-grid" th:object="${form}" method="post" enctype="multipart/form-data"
-              th:action="${creating} ? @{/marketing/posts} : @{|${#request.requestURI}|}">
-            <img th:if="${post != null && post.thumbnail != null}" th:src="${post.thumbnail}" alt="" style="max-width:240px">
-            <label class="field">Ảnh đại diện
-                <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp">
-            </label>
-            <label class="field">Danh mục
-                <select th:field="*{categoryId}" required>
-                    <option value="">Chọn</option>
-                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
-                </select>
-                <small class="field-error" th:errors="*{categoryId}"></small>
-            </label>
-            <label class="field">Tiêu đề
-                <input th:field="*{title}" required maxlength="255">
-                <small class="field-error" th:errors="*{title}"></small>
-            </label>
-            <label class="field">Tóm tắt
-                <textarea th:field="*{briefInfo}" maxlength="500" rows="3"></textarea>
-                <small class="field-error" th:errors="*{briefInfo}"></small>
-            </label>
-            <label class="field">Nội dung
-                <textarea th:field="*{content}" required rows="10"></textarea>
-                <small class="field-error" th:errors="*{content}"></small>
-            </label>
-            <div class="checks">
-                <label><input type="checkbox" th:field="*{featured}"> Nổi bật</label>
-                <label><input type="checkbox" th:field="*{visible}"> Hiển thị</label>
-            </div>
-            <div class="form-actions">
-                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
-                <a class="btn btn-ghost" th:href="@{/marketing/posts}">Quay lại</a>
-            </div>
-        </form>
+
+        <div class="mk-grid-wide">
+            <section class="card mk-card">
+                <div class="mk-title-row">
+                    <h2 th:text="${post.title}">Tiêu đề</h2>
+                    <span th:replace="~{fragments/header :: visibility(${post.visible})}"></span>
+                </div>
+                <img class="mk-cover" th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" alt="">
+                <p class="mk-label">Tóm tắt</p>
+                <p class="mk-text" th:text="${post.briefInfo}"></p>
+                <p class="mk-label">Nội dung</p>
+                <p class="mk-text" th:text="${post.content}"></p>
+            </section>
+            <section class="card mk-card">
+                <h2>Thông tin bài viết</h2>
+                <table class="mk-kv">
+                    <tr><td>Mã bài viết</td><td th:text="${post.code}"></td></tr>
+                    <tr><td>Tiêu đề</td><td th:text="${post.title}"></td></tr>
+                    <tr><td>Trạng thái</td><td><span th:replace="~{fragments/header :: visibility(${post.visible})}"></span></td></tr>
+                    <tr><td>Tác giả</td><td th:text="${post.authorName}"></td></tr>
+                    <tr><td>Ngày tạo</td><td th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><td>Cập nhật lần cuối</td><td th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></td></tr>
+                </table>
+            </section>
+        </div>
+
+        <!--/* MP05 Xac nhan an bai viet */-->
+        <th:block th:if="${post.visible}">
+            <div th:replace="~{fragments/marketing :: hideModal('hide-post', 'Ẩn bài viết?', ${post.title},
+                    'Bài viết sẽ không xuất hiện trên website. Nội dung vẫn được giữ nguyên và có thể hiện lại.',
+                    @{|/marketing/posts/${post.id}/toggle|}, 'detail', 'Ẩn bài viết')}"></div>
+        </th:block>
     </div>
 </div>
 <div th:replace="~{fragments/header :: modals('')}"></div>

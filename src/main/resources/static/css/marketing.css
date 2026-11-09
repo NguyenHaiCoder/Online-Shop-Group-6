@@ -1,0 +1,99 @@
+/* Giao dien rieng cac man Marketing (PR, MP, MS, MC, MF) theo NOVA_SHOP_UI. */
+
+.mk-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: -4px 0 18px; }
+.mk-sub { color: var(--muted); margin: 0; }
+.mk-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mk-actions form { margin: 0; }
+.btn, .mk-actions button { display: inline-flex; align-items: center; gap: 8px; }
+.mk-outline, button.mk-outline { background: #fff; color: var(--primary); border: 1px solid #bfdbfe; }
+.mk-outline:hover, button.mk-outline:hover { background: var(--soft); }
+.mk-back { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 14px; color: var(--ink); font-weight: 600; }
+.mk-back:hover { background: #f8fafc; }
+
+.mk-toolbar { display: flex; gap: 12px; padding: 14px; margin-bottom: 16px; }
+.mk-toolbar input[type="search"] { flex: 2; }
+.mk-toolbar select { flex: 1; }
+.mk-toolbar input, .mk-toolbar select {
+    border: 1px solid #e2e8f0; background: #fff; border-radius: 12px; padding: 11px 14px; outline: none; min-width: 0;
+}
+.mk-toolbar button { flex: 0 0 auto; }
+
+.mk-table td .sub { display: block; color: var(--muted); font-size: 13px; }
+.mk-table td strong a, .mk-table a.mk-name { color: var(--primary); font-weight: 650; }
+.mk-thumb { width: 88px; height: 60px; object-fit: cover; border-radius: 10px; background: #eef3f9; }
+.mk-banner { width: 200px; height: 72px; object-fit: cover; border-radius: 10px; background: #eef3f9; }
+.mk-row-actions { display: flex; gap: 14px; align-items: center; white-space: nowrap; }
+.mk-row-actions form { margin: 0; }
+.mk-link, button.mk-link {
+    display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 0; padding: 0;
+    color: var(--primary); font-weight: 600; cursor: pointer;
+}
+.mk-link:hover, button.mk-link:hover { background: transparent; text-decoration: underline; }
+.mk-icon svg { display: block; }
+
+.mk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+.mk-grid-wide { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+.mk-card { padding: 18px 20px; margin-bottom: 16px; }
+.mk-grid .mk-card, .mk-grid-wide .mk-card { margin-bottom: 0; }
+.mk-card h2 { font-size: 18px; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.mk-kv { width: 100%; border-collapse: collapse; }
+.mk-kv td { padding: 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.mk-kv tr:last-child td { border-bottom: 0; }
+.mk-kv td:first-child { color: var(--muted); width: 38%; padding-right: 12px; }
+.mk-box { background: #f8fafc; border-radius: 12px; padding: 12px 14px; white-space: pre-line; margin: 0; }
+.mk-label { font-weight: 650; margin: 12px 0 4px; }
+.mk-label:first-of-type { margin-top: 0; }
+.mk-text { white-space: pre-line; margin: 0; }
+.mk-spec-list { margin: 0; padding-left: 18px; }
+
+.mk-hero { display: flex; gap: 18px; align-items: center; padding: 18px; margin-bottom: 16px; }
+.mk-hero img, .mk-hero .mk-avatar { width: 180px; height: 120px; object-fit: cover; border-radius: 12px; background: #eef3f9; flex: 0 0 auto; }
+.mk-hero .mk-avatar { width: 96px; height: 96px; display: grid; place-items: center; color: var(--primary); background: var(--soft); }
+.mk-hero-body { flex: 1; min-width: 0; }
+.mk-hero h2 { margin: 2px 0 4px; font-size: 26px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.mk-hero-side { border-left: 1px solid var(--line); padding-left: 18px; color: var(--muted); display: grid; gap: 6px; }
+.mk-hero-side strong { color: var(--ink); font-weight: 600; }
+.mk-code { color: var(--muted); font-size: 14px; }
+.mk-title-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
+.mk-title-row h2 { margin: 0; font-size: 24px; }
+.mk-cover { width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: #eef3f9; }
+
+.mk-gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+.mk-gallery img { width: 100%; height: 100%; min-height: 80px; object-fit: cover; border-radius: 10px; background: #eef3f9; }
+.mk-gallery img:first-child { grid-row: span 2; min-height: 170px; }
+.mk-product-chip { display: flex; gap: 14px; align-items: center; }
+.mk-product-chip img { width: 120px; height: 80px; object-fit: cover; border-radius: 10px; background: #eef3f9; }
+.mk-images { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.mk-images img { width: 120px; height: 90px; object-fit: cover; border-radius: 10px; }
+
+.mk-form { padding: 20px 22px; margin-bottom: 16px; }
+.mk-form h2 { font-size: 18px; margin: 0 0 14px; }
+.mk-form .field span { font-weight: 650; }
+.mk-form .field textarea { resize: vertical; }
+.mk-radios { display: flex; gap: 10px; flex-wrap: wrap; }
+.mk-radio { display: inline-flex; gap: 8px; align-items: center; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 16px; background: #fff; cursor: pointer; font-weight: 500; }
+.mk-radio:has(input:checked) { background: var(--soft); border-color: #bfdbfe; }
+.mk-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin: 4px 0 24px; }
+.mk-current { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.mk-current figure { margin: 0; display: grid; gap: 6px; justify-items: center; font-size: 13px; color: var(--muted); }
+.mk-current img { width: 132px; height: 96px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.mk-current .mk-wide { width: 320px; height: 108px; }
+.mk-strip { display: flex; gap: 28px; flex-wrap: wrap; background: var(--soft); border: 1px solid #dbeafe; border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; color: var(--muted); }
+.mk-strip strong { color: var(--ink); }
+.mk-count { text-align: right; color: var(--muted); font-size: 13px; }
+
+.mk-confirm {
+    position: relative; z-index: 1; background: #fff; border-radius: 18px; padding: 26px;
+    width: min(440px, 100%); text-align: center; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+}
+.mk-confirm h2 { margin: 12px 0; font-size: 24px; }
+.mk-confirm-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--soft); color: var(--primary); display: inline-grid; place-items: center; }
+.mk-confirm-name { background: #f1f5f9; border-radius: 10px; padding: 10px; font-weight: 700; margin: 0 0 12px; }
+.mk-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+
+@media (max-width: 960px) {
+    .mk-grid, .mk-grid-wide, .mk-form .form-grid { grid-template-columns: 1fr; }
+    .mk-toolbar { flex-direction: column; }
+    .mk-hero { flex-direction: column; align-items: flex-start; }
+    .mk-hero-side { border-left: 0; padding-left: 0; }
+}
