@@ -21,6 +21,7 @@ public class ProductFilter {
     private Boolean visible;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private String sort;
     private Integer page = 1;
 
     public List<Long> getEffectiveCategoryIds() {

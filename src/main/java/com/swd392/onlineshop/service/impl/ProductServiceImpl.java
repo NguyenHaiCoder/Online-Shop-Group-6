@@ -30,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,7 +211,19 @@ public class ProductServiceImpl implements ProductService {
     public Page<Product> getPublicProducts(ProductFilter filter) {
         int pageIndex = (filter.getPage() != null && filter.getPage() > 0) ? filter.getPage() - 1 : 0;
         int defaultPageSize = (appProperties != null && appProperties.getPageSize() > 0) ? appProperties.getPageSize() : pageSize;
-        PageRequest pageable = PageRequest.of(pageIndex, defaultPageSize);
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+        if (filter.getSort() != null && !filter.getSort().isBlank()) {
+            if ("price_asc".equalsIgnoreCase(filter.getSort())) {
+                sort = Sort.by(Sort.Direction.ASC, "originalPrice");
+            } else if ("price_desc".equalsIgnoreCase(filter.getSort())) {
+                sort = Sort.by(Sort.Direction.DESC, "originalPrice");
+            } else if ("newest".equalsIgnoreCase(filter.getSort())) {
+                sort = Sort.by(Sort.Direction.DESC, "createdAt");
+            }
+        }
+
+        PageRequest pageable = PageRequest.of(pageIndex, defaultPageSize, sort);
 
         String keyword = trimToNull(filter.getKeyword());
         List<Long> categoryIds = filter.getEffectiveCategoryIds();
@@ -225,6 +238,21 @@ public class ProductServiceImpl implements ProductService {
                 filter.getMaxPrice(),
                 pageable
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Long> getProductCountByCategory() {
+        Map<Long, Long> counts = new HashMap<>();
+        List<Object[]> rows = productRepository.countProductsByCategory();
+        if (rows != null) {
+            for (Object[] row : rows) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                    counts.put((Long) row[0], ((Number) row[1]).longValue());
+                }
+            }
+        }
+        return counts;
     }
 
     @Override

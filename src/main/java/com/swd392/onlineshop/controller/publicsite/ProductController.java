@@ -23,6 +23,8 @@ public class ProductController {
     public String listProducts(@ModelAttribute ProductFilter filter, Model model) {
         Page<Product> page = productService.getPublicProducts(filter);
         model.addAttribute("page", page);
+        model.addAttribute("categoryCounts", productService.getProductCountByCategory());
+        model.addAttribute("filter", filter);
         return "public/products/product-list";
     }
 

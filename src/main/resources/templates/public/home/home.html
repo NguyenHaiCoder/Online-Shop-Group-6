@@ -1,72 +1,141 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Trang chủ')}"></head>
-<body>
+<body class="home-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page home-page" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <div class="stack">
-        <section class="hero" th:if="${sliders == null || sliders.empty}">
-            <div class="hero-copy">
-                <h1>Góc làm việc mới.<br>Cảm hứng mới.</h1>
-                <p class="muted">Khám phá bộ sưu tập bàn phím, chuột và tai nghe Nova.</p>
-                <a class="btn" th:href="@{/products}">Khám phá sản phẩm →</a>
-                <div class="dots"><i class="on"></i><i></i><i></i></div>
-            </div>
-        </section>
-        <section class="hero" th:if="${sliders != null && !sliders.empty}">
-            <a class="hero-slide" th:each="slider, iter : ${sliders}" th:href="${slider.backlink != null ? slider.backlink : '/products'}" th:style="${iter.index > 0} ? 'display:none' : ''">
-                <img th:src="${slider.image}" th:alt="${slider.title}">
-            </a>
-            <div class="hero-copy">
-                <h1 th:text="${sliders[0].title}">Góc làm việc mới.</h1>
-                <a class="btn" th:href="@{/products}">Khám phá sản phẩm →</a>
-            </div>
-        </section>
 
-        <nav class="cat-row" th:if="${productCategories != null}">
-            <a class="cat" th:each="category : ${productCategories}" th:href="@{/products(categoryId=${category.id})}">
-                <span class="ph"></span>
-                <strong th:text="${category.name}">Bàn phím</strong>
-                <span class="muted">›</span>
-            </a>
-        </nav>
+    <div class="home-container">
+        <!-- 1. Hero Banner Slider -->
+        <section class="home-hero-card">
+            <!-- Nút điều hướng Slider trái/phải -->
+            <button type="button" class="hero-arrow-btn prev-arrow" aria-label="Previous slide">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button type="button" class="hero-arrow-btn next-arrow" aria-label="Next slide">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
 
-        <section>
-            <div class="section-head"><h2>Sản phẩm nổi bật</h2><a th:href="@{/products}">Xem tất cả sản phẩm →</a></div>
-            <div class="grid-3">
-                <article class="pcard hcard" th:each="product : ${featuredProducts}">
-                    <a th:href="@{|/products/${product.id}|}">
-                        <img class="thumb" th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}">
-                        <div class="ph wide" th:if="${product.thumbnail == null}"></div>
+            <div class="hero-content-wrapper">
+                <!-- Cột trái: Văn bản & CTA -->
+                <div class="hero-text-col">
+                    <h1 class="hero-main-title">Góc làm việc mới.<br>Cảm hứng mới.</h1>
+                    <p class="hero-sub-text">
+                        Khám phá bộ sưu tập bàn phím, chuột và tai nghe Nova – hiệu năng ổn định, thiết kế hiện đại, đồng hành cùng bạn mỗi ngày.
+                    </p>
+                    <a class="hero-cta-btn" th:href="@{/products}">
+                        <span>Khám phá sản phẩm</span>
+                        <span class="cta-arrow">→</span>
                     </a>
-                    <div class="body">
-                        <a th:href="@{|/products/${product.id}|}"><h3 th:text="${product.name}">Sản phẩm</h3></a>
-                        <p class="price"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">0</span></p>
+                </div>
+
+                <!-- Cột phải: Hình ảnh hero desk setup -->
+                <div class="hero-img-col">
+                    <img th:if="${sliders != null and !sliders.empty}" th:src="${sliders[0].image}" alt="Nova Workspace Setup" class="hero-featured-image">
+                    <img th:if="${sliders == null or sliders.empty}" src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=1200&q=80" alt="Nova Workspace Setup" class="hero-featured-image">
+                </div>
+            </div>
+
+            <!-- Dots indicator -->
+            <div class="hero-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </section>
+
+        <!-- 2. Danh mục nổi bật (4 Card ngang) -->
+        <section class="home-cat-section">
+            <div class="home-cat-grid">
+                <a th:href="@{/products(categoryId=${cat.id})}" class="home-cat-card" th:each="cat : ${productCategories}">
+                    <div class="cat-card-thumb">
+                        <!-- Icon hoặc ảnh đại diện cho danh mục -->
+                        <img th:if="${cat.value == 'KEYBOARD'}" src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=120&q=80" alt="Bàn phím">
+                        <img th:if="${cat.value == 'MOUSE'}" src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=120&q=80" alt="Chuột">
+                        <img th:if="${cat.value == 'HEADPHONE'}" src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=120&q=80" alt="Tai nghe">
+                        <img th:if="${cat.value != 'KEYBOARD' and cat.value != 'MOUSE' and cat.value != 'HEADPHONE'}" src="https://images.unsplash.com/photo-1616400619175-5beda3a17896?auto=format&fit=crop&w=120&q=80" alt="Phụ kiện">
+                    </div>
+                    <span class="cat-card-name" th:text="${cat.name}">Bàn phím</span>
+                    <span class="cat-card-arrow">›</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 3. Sản phẩm nổi bật (Card ngang: ảnh bên trái, thông tin bên phải) -->
+        <section class="home-featured-section">
+            <div class="home-section-header">
+                <h2 class="home-section-title">Sản phẩm nổi bật</h2>
+                <a class="home-section-more" th:href="@{/products}">
+                    <span>Xem tất cả sản phẩm</span>
+                    <span class="arrow-right">→</span>
+                </a>
+            </div>
+
+            <div class="home-products-grid">
+                <article class="home-product-card" th:each="product : ${featuredProducts}">
+                    <a th:href="@{|/products/${product.id}|}" class="product-thumb-box">
+                        <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}" class="product-thumb-img">
+                        <div th:if="${product.thumbnail == null}" class="product-thumb-placeholder"></div>
+                    </a>
+                    <div class="product-meta-box">
+                        <span class="product-code-label" th:text="${product.code}">KB001</span>
+                        <h3 class="product-title-heading">
+                            <a th:href="@{|/products/${product.id}|}" th:text="${product.name}">Bàn phím cơ Nova K68</a>
+                        </h3>
+                        <div class="product-price-label">
+                            <span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">690.000 ₫</span>
+                        </div>
                     </div>
                 </article>
             </div>
-            <p class="empty" th:if="${featuredProducts == null || featuredProducts.empty}">Chưa có sản phẩm nổi bật.</p>
+            <p class="empty-notice" th:if="${featuredProducts == null || featuredProducts.empty}">Chưa có sản phẩm nổi bật.</p>
         </section>
 
-        <section>
-            <div class="section-head"><h2>Góc cảm hứng</h2><a th:href="@{/blogs}">Xem tất cả bài viết →</a></div>
-            <div class="grid-3" style="grid-template-columns: 1fr 1fr;">
-                <article class="bcard hcard" th:each="post : ${hotPosts}">
-                    <a th:href="@{|/blogs/${post.id}|}">
-                        <img class="thumb" th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}">
-                        <div class="ph wide" th:if="${post.thumbnail == null}"></div>
+        <!-- 4. Góc cảm hứng (2 Card ngang: ảnh bên trái, nội dung bên phải) -->
+        <section class="home-blog-section">
+            <div class="home-section-header">
+                <h2 class="home-section-title">Góc cảm hứng</h2>
+                <a class="home-section-more" th:href="@{/blogs}">
+                    <span>Xem tất cả bài viết</span>
+                    <span class="arrow-right">→</span>
+                </a>
+            </div>
+
+            <div class="home-blogs-grid">
+                <article class="home-blog-card" th:each="post : ${hotPosts}">
+                    <a th:href="@{|/blogs/${post.id}|}" class="blog-thumb-box">
+                        <img th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}" class="blog-thumb-img">
+                        <div th:if="${post.thumbnail == null}" class="blog-thumb-placeholder"></div>
                     </a>
-                    <div class="body">
-                        <a th:href="@{|/blogs/${post.id}|}"><h3 th:text="${post.title}">Bài viết</h3></a>
-                        <p class="muted" th:text="${post.briefInfo}"></p>
-                        <p class="meta" th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></p>
+                    <div class="blog-meta-box">
+                        <h3 class="blog-title-heading">
+                            <a th:href="@{|/blogs/${post.id}|}" th:text="${post.title}">5 phụ kiện giúp góc làm việc gọn gàng và hiệu quả hơn</a>
+                        </h3>
+                        <p class="blog-brief-text" th:text="${post.briefInfo}">
+                            Gợi ý những món phụ kiện thiết thực để tối ưu không gian, tăng sự tập trung và cảm hứng làm việc mỗi ngày.
+                        </p>
+                        <div class="blog-date-text">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy')}">09/11/2026</span>
+                        </div>
                     </div>
                 </article>
             </div>
         </section>
     </div>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>

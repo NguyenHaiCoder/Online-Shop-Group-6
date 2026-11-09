@@ -43,19 +43,37 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Optional<Product> findByIdWithLock(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"category"})
-    @Query("""
+    @Query(value = """
         SELECT p FROM Product p
         WHERE p.visible = true
           AND (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(p.code) LIKE LOWER(CONCAT('%', :keyword, '%'))
                OR LOWER(p.briefInfo) LIKE LOWER(CONCAT('%', :keyword, '%')))
           AND (:categoryIds IS NULL OR p.category.id IN :categoryIds)
           AND (:minPrice IS NULL OR COALESCE(p.salePrice, p.originalPrice) >= :minPrice)
           AND (:maxPrice IS NULL OR COALESCE(p.salePrice, p.originalPrice) <= :maxPrice)
-        ORDER BY p.updatedAt DESC
+    """, countQuery = """
+        SELECT COUNT(p) FROM Product p
+        WHERE p.visible = true
+          AND (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(p.code) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(p.briefInfo) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:categoryIds IS NULL OR p.category.id IN :categoryIds)
+          AND (:minPrice IS NULL OR COALESCE(p.salePrice, p.originalPrice) >= :minPrice)
+          AND (:maxPrice IS NULL OR COALESCE(p.salePrice, p.originalPrice) <= :maxPrice)
     """)
     Page<Product> findPublicProducts(@Param("keyword") String keyword,
                                      @Param("categoryIds") Collection<Long> categoryIds,
                                      @Param("minPrice") BigDecimal minPrice,
                                      @Param("maxPrice") BigDecimal maxPrice,
                                      Pageable pageable);
+
+    @Query("""
+        SELECT s.id, COUNT(p.id)
+        FROM Setting s
+        LEFT JOIN Product p ON p.category.id = s.id AND p.visible = true
+        WHERE s.type = com.swd392.onlineshop.enums.SettingType.PRODUCT_CATEGORY AND s.active = true
+        GROUP BY s.id
+    """)
+    List<Object[]> countProductsByCategory();
 }

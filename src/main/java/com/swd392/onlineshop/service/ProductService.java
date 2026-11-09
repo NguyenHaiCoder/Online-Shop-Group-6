@@ -46,5 +46,7 @@ public interface ProductService {
 
     Page<Product> getPublicProducts(ProductFilter filter);
 
+    java.util.Map<Long, Long> getProductCountByCategory();
+
     Product getPublicProductById(Long id);
 }
