@@ -1,5 +1,6 @@
 package com.swd392.onlineshop.service.impl;
 
+import com.swd392.onlineshop.config.AppProperties;
 import com.swd392.onlineshop.dto.request.ProductFilter;
 import com.swd392.onlineshop.dto.request.ProductForm;
 import com.swd392.onlineshop.dto.response.ProductRow;
@@ -9,6 +10,7 @@ import com.swd392.onlineshop.entity.ProductImage;
 import com.swd392.onlineshop.entity.ProductSpecification;
 import com.swd392.onlineshop.entity.Setting;
 import com.swd392.onlineshop.enums.SettingType;
+import com.swd392.onlineshop.exception.NotFoundException;
 import com.swd392.onlineshop.repository.ProductRepository;
 import com.swd392.onlineshop.repository.SettingRepository;
 import com.swd392.onlineshop.service.FileStorageService;
@@ -42,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final SettingRepository settingRepository;
     private final FileStorageService fileStorageService;
+    private final AppProperties appProperties;
 
     @Value("${app.page-size:10}")
     private int pageSize;
@@ -186,6 +189,49 @@ public class ProductServiceImpl implements ProductService {
         Product p = find(id);
         p.setVisible(!p.isVisible());
         return p.isVisible();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> getFeaturedProducts(int limit) {
+        PageRequest pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return productRepository.findByVisibleTrueAndFeaturedTrue(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> getLatestProducts(int limit) {
+        PageRequest pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return productRepository.findByVisibleTrue(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Product> getPublicProducts(ProductFilter filter) {
+        int pageIndex = (filter.getPage() != null && filter.getPage() > 0) ? filter.getPage() - 1 : 0;
+        int defaultPageSize = (appProperties != null && appProperties.getPageSize() > 0) ? appProperties.getPageSize() : pageSize;
+        PageRequest pageable = PageRequest.of(pageIndex, defaultPageSize);
+
+        String keyword = trimToNull(filter.getKeyword());
+        List<Long> categoryIds = filter.getEffectiveCategoryIds();
+        if (categoryIds.isEmpty()) {
+            categoryIds = null;
+        }
+
+        return productRepository.findPublicProducts(
+                keyword,
+                categoryIds,
+                filter.getMinPrice(),
+                filter.getMaxPrice(),
+                pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Product getPublicProductById(Long id) {
+        return productRepository.findByIdAndVisibleTrue(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm hoặc sản phẩm đã bị ẩn."));
     }
 
     private void apply(Product p, ProductForm form, Setting category, List<String[]> specs) {

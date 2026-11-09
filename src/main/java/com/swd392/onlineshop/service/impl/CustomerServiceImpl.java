@@ -2,12 +2,16 @@ package com.swd392.onlineshop.service.impl;
 
 import com.swd392.onlineshop.dto.request.CustomerFilter;
 import com.swd392.onlineshop.dto.request.CustomerForm;
+import com.swd392.onlineshop.dto.request.ReceiverForm;
 import com.swd392.onlineshop.dto.response.CustomerRow;
 import com.swd392.onlineshop.dto.response.CustomerView;
 import com.swd392.onlineshop.entity.Customer;
+import com.swd392.onlineshop.entity.CustomerHistory;
 import com.swd392.onlineshop.enums.CustomerStatus;
+import com.swd392.onlineshop.enums.Gender;
 import com.swd392.onlineshop.enums.OrderStatus;
 import com.swd392.onlineshop.exception.NotFoundException;
+import com.swd392.onlineshop.repository.CustomerHistoryRepository;
 import com.swd392.onlineshop.repository.CustomerRepository;
 import com.swd392.onlineshop.repository.OrderRepository;
 import com.swd392.onlineshop.service.CustomerService;
@@ -26,6 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -33,6 +40,7 @@ import java.util.UUID;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerHistoryRepository customerHistoryRepository;
     private final OrderRepository orderRepository;
 
     @Value("${app.page-size:10}")
@@ -44,6 +52,16 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy khách hàng."));
         customer.setStatus(resolve(customer));
+    }
+
+    @Override
+    @Transactional
+    public void refreshStatus(Customer customer) {
+        if (customer == null || customer.getId() == null) {
+            return;
+        }
+        customer.setStatus(resolve(customer));
+        customerRepository.save(customer);
     }
 
     private CustomerStatus resolve(Customer customer) {
@@ -136,12 +154,12 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public Long create(CustomerForm form) {
         Customer c = new Customer();
-        c.setEmail(normalizeEmail(form.getEmail()));
-        apply(c, form);
-        // Ma KH0001 sinh theo id: luu ma tam truoc de co id
         c.setCode(tempCode());
+        c.setEmail(normalizeEmail(form.getEmail()));
+        c.setStatus(CustomerStatus.CONTACT);
+        apply(c, form);
         customerRepository.saveAndFlush(c);
-        c.setCode(String.format("KH%04d", c.getId()));
+        c.setCode("KH" + String.format("%04d", c.getId()));
         return c.getId();
     }
 
@@ -165,6 +183,116 @@ public class CustomerServiceImpl implements CustomerService {
         Customer c = find(id);
         c.setVisible(!c.isVisible());
         return c.isVisible();
+    }
+
+    @Override
+    @Transactional
+    public Customer upsertFromReceiver(ReceiverForm form) {
+        String email = form.getEmail().trim().toLowerCase(Locale.ROOT);
+        Optional<Customer> existingOpt = customerRepository.findByEmail(email);
+
+        if (existingOpt.isEmpty()) {
+            Customer customer = new Customer();
+            customer.setCode(generateCustomerCode());
+            customer.setEmail(email);
+            customer.setFullName(form.getFullName().trim());
+            customer.setGender(form.getGender());
+            customer.setMobile(form.getMobile().trim());
+            customer.setAddress(form.getAddress().trim());
+            customer.setStatus(CustomerStatus.CONTACT);
+            customer.setVisible(true);
+
+            Customer saved = customerRepository.save(customer);
+
+            CustomerHistory history = new CustomerHistory();
+            history.setCustomer(saved);
+            history.setEmail(saved.getEmail());
+            history.setFullName(saved.getFullName());
+            history.setGender(saved.getGender());
+            history.setMobile(saved.getMobile());
+            history.setAddress(saved.getAddress());
+            history.setUpdatedBy(null);
+            customerHistoryRepository.save(history);
+
+            return saved;
+        }
+
+        Customer customer = existingOpt.get();
+        boolean changed = !Objects.equals(customer.getFullName(), form.getFullName().trim())
+                || !Objects.equals(customer.getGender(), form.getGender())
+                || !Objects.equals(customer.getMobile(), form.getMobile().trim())
+                || !Objects.equals(customer.getAddress(), form.getAddress().trim());
+
+        if (changed) {
+            customer.setFullName(form.getFullName().trim());
+            customer.setGender(form.getGender());
+            customer.setMobile(form.getMobile().trim());
+            customer.setAddress(form.getAddress().trim());
+            customerRepository.save(customer);
+
+            CustomerHistory history = new CustomerHistory();
+            history.setCustomer(customer);
+            history.setEmail(customer.getEmail());
+            history.setFullName(customer.getFullName());
+            history.setGender(customer.getGender());
+            history.setMobile(customer.getMobile());
+            history.setAddress(customer.getAddress());
+            history.setUpdatedBy(null);
+            customerHistoryRepository.save(history);
+        }
+
+        return customer;
+    }
+
+    @Override
+    @Transactional
+    public Customer findOrCreateContact(String email, String fullName, Gender gender, String mobile) {
+        String cleanEmail = email.trim().toLowerCase(Locale.ROOT);
+        return customerRepository.findByEmail(cleanEmail).orElseGet(() -> {
+            Customer customer = new Customer();
+            customer.setCode(generateCustomerCode());
+            customer.setEmail(cleanEmail);
+            customer.setFullName(fullName != null ? fullName.trim() : "Khách hàng");
+            customer.setGender(gender != null ? gender : Gender.OTHER);
+            customer.setMobile(mobile != null ? mobile.trim() : "");
+            customer.setStatus(CustomerStatus.CONTACT);
+            customer.setVisible(true);
+
+            Customer saved = customerRepository.save(customer);
+
+            CustomerHistory history = new CustomerHistory();
+            history.setCustomer(saved);
+            history.setEmail(saved.getEmail());
+            history.setFullName(saved.getFullName());
+            history.setGender(saved.getGender());
+            history.setMobile(saved.getMobile());
+            history.setAddress(saved.getAddress());
+            history.setUpdatedBy(null);
+            customerHistoryRepository.save(history);
+
+            return saved;
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Customer> findByUserId(Long userId) {
+        return customerRepository.findByUserId(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Customer> findByEmail(String email) {
+        return customerRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private String generateCustomerCode() {
+        long count = customerRepository.count();
+        String code = String.format("KH%04d", count + 1);
+        while (customerRepository.existsByCode(code)) {
+            code = String.format("KH%04d", count + 1 + new Random().nextInt(1000));
+        }
+        return code;
     }
 
     private void apply(Customer c, CustomerForm form) {

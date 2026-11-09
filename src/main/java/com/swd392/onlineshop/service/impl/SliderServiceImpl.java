@@ -131,6 +131,12 @@ public class SliderServiceImpl implements SliderService {
         return s.isVisible();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Slider> getVisibleSliders() {
+        return sliderRepository.findByVisibleTrueOrderByDisplayOrderAsc();
+    }
+
     private void apply(Slider s, SliderForm form) {
         s.setTitle(form.getTitle().trim());
         s.setNotes(form.getNotes().trim());

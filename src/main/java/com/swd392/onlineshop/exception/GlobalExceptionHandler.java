@@ -26,4 +26,23 @@ public class GlobalExceptionHandler {
         model.addAttribute("message", ex.getMessage());
         return "error";
     }
+
+    @ExceptionHandler(OutOfStockException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String outOfStock(OutOfStockException ex, Model model) {
+        model.addAttribute("status", 400);
+        model.addAttribute("error", "Sản phẩm tạm thời không đủ hàng");
+        model.addAttribute("message", ex.getMessage());
+        model.addAttribute("productName", ex.getProductName());
+        return "error";
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String business(BusinessException ex, Model model) {
+        model.addAttribute("status", 400);
+        model.addAttribute("error", "Không thực hiện được");
+        model.addAttribute("message", ex.getMessage());
+        return "error";
+    }
 }

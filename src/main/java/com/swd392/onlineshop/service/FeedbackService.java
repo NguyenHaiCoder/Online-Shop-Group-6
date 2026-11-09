@@ -4,11 +4,13 @@ import com.swd392.onlineshop.dto.request.FeedbackFilter;
 import com.swd392.onlineshop.dto.request.FeedbackForm;
 import com.swd392.onlineshop.dto.response.FeedbackRow;
 import com.swd392.onlineshop.dto.response.FeedbackView;
+import com.swd392.onlineshop.entity.Feedback;
 import org.springframework.data.domain.Page;
 
 /**
  * Marketing: View Feedback List, Add New Feedback, View Feedback Details,
  * Edit Feedback, Show/Hide Feedback (MF01-MF05).
+ * Public: submitFeedback.
  */
 public interface FeedbackService {
 
@@ -29,4 +31,6 @@ public interface FeedbackService {
 
     /** Doi Hien/An, tra ve trang thai moi. */
     boolean toggleVisible(Long id, String actorEmail);
+
+    Feedback submitFeedback(FeedbackForm form, Long userId);
 }

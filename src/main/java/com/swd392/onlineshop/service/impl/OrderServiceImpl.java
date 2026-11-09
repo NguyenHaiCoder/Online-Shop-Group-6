@@ -1,8 +1,11 @@
 package com.swd392.onlineshop.service.impl;
 
+import com.swd392.onlineshop.config.AppProperties;
 import com.swd392.onlineshop.dto.request.AssignOrderForm;
 import com.swd392.onlineshop.dto.request.OrderFilter;
 import com.swd392.onlineshop.dto.request.OrderUpdateForm;
+import com.swd392.onlineshop.dto.request.ReceiverForm;
+import com.swd392.onlineshop.dto.response.CartLine;
 import com.swd392.onlineshop.dto.response.OrderHistoryView;
 import com.swd392.onlineshop.dto.response.OrderLineView;
 import com.swd392.onlineshop.dto.response.OrderRow;
@@ -19,18 +22,25 @@ import com.swd392.onlineshop.enums.UserStatus;
 import com.swd392.onlineshop.exception.BusinessException;
 import com.swd392.onlineshop.exception.ForbiddenException;
 import com.swd392.onlineshop.exception.NotFoundException;
-import com.swd392.onlineshop.repository.OrderHistoryRepository;
+import com.swd392.onlineshop.exception.OutOfStockException;
 import com.swd392.onlineshop.repository.OrderItemRepository;
 import com.swd392.onlineshop.repository.OrderRepository;
+import com.swd392.onlineshop.repository.OrderHistoryRepository;
+import com.swd392.onlineshop.repository.ProductRepository;
 import com.swd392.onlineshop.repository.UserRepository;
+import com.swd392.onlineshop.service.CartService;
 import com.swd392.onlineshop.service.CustomerService;
+import com.swd392.onlineshop.service.EmailService;
 import com.swd392.onlineshop.service.OrderService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
@@ -38,17 +48,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OrderServiceImpl implements OrderService {
+
+    public static final String SESSION_EDITING_ORDER_ID = "EDITING_ORDER_ID";
+    public static final String SESSION_LAST_ORDER_ID = "LAST_ORDER_ID";
 
     private static final String SALE = "SALE";
     private static final String SALE_MANAGER = "SALE_MANAGER";
@@ -56,11 +73,19 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderHistoryRepository orderHistoryRepository;
+    private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CustomerService customerService;
+    private final CartService cartService;
+    private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Value("${app.page-size:10}")
     private int pageSize;
+
+    // ==========================================
+    // SALE & SALE MANAGER METHODS
+    // ==========================================
 
     @Override
     public Page<OrderRow> list(OrderFilter filter) {
@@ -125,6 +150,271 @@ public class OrderServiceImpl implements OrderService {
     public boolean viewingAll() {
         return isManager(currentUser());
     }
+
+    // ==========================================
+    // CUSTOMER & PUBLIC CHECKOUT METHODS
+    // ==========================================
+
+    @Override
+    @Transactional
+    public Order placeOrder(ReceiverForm form, HttpSession session, Long userId) {
+        List<CartLine> cartLines = cartService.getCartLines(session, userId);
+        if (cartLines.isEmpty()) {
+            throw new BusinessException("Giỏ hàng của bạn đang trống.");
+        }
+
+        Object editingOrderIdObj = session != null ? session.getAttribute(SESSION_EDITING_ORDER_ID) : null;
+        if (editingOrderIdObj != null) {
+            Long editingOrderId = Long.valueOf(editingOrderIdObj.toString());
+            return handleUpdateExistingOrder(editingOrderId, form, cartLines, session, userId);
+        }
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<Product> lockedProducts = new ArrayList<>();
+
+        for (CartLine line : cartLines) {
+            Product product = productRepository.findByIdWithLock(line.getProductId())
+                    .orElseThrow(() -> new OutOfStockException(line.getName()));
+
+            if (!product.isVisible() || product.getStockQuantity() < line.getQuantity()) {
+                throw new OutOfStockException(product.getName());
+            }
+            lockedProducts.add(product);
+            totalAmount = totalAmount.add(product.getCurrentPrice().multiply(BigDecimal.valueOf(line.getQuantity())));
+        }
+
+        Customer receiverCustomer = customerService.upsertFromReceiver(form);
+
+        Customer orderCustomer;
+        if (userId != null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng."));
+            orderCustomer = customerService.findByUserId(userId).orElseGet(() -> {
+                Optional<Customer> matchOpt = customerService.findByEmail(user.getEmail());
+                if (matchOpt.isPresent()) {
+                    Customer c = matchOpt.get();
+                    c.setUser(user);
+                    return c;
+                }
+                Customer newC = customerService.findOrCreateContact(user.getEmail(), user.getFullName(), user.getGender(), user.getMobile());
+                newC.setUser(user);
+                return newC;
+            });
+        } else {
+            orderCustomer = receiverCustomer;
+        }
+
+        Order order = new Order();
+        order.setCode(generateOrderCode());
+        order.setCustomer(orderCustomer);
+        order.setReceiverName(form.getFullName().trim());
+        order.setReceiverGender(form.getGender());
+        order.setReceiverEmail(form.getEmail().trim().toLowerCase());
+        order.setReceiverMobile(form.getMobile().trim());
+        order.setReceiverAddress(form.getAddress().trim());
+        order.setNote(form.getNote() != null ? form.getNote().trim() : null);
+        order.setShippingFee(BigDecimal.ZERO);
+        order.setTotalAmount(totalAmount);
+        order.setPaymentMethod(form.getPaymentMethod());
+        order.setStatus(OrderStatus.SUBMITTED);
+
+        assignRoundRobinSale(order);
+
+        Order savedOrder = orderRepository.save(order);
+
+        for (int i = 0; i < cartLines.size(); i++) {
+            CartLine line = cartLines.get(i);
+            Product p = lockedProducts.get(i);
+
+            OrderItem item = new OrderItem();
+            item.setOrder(savedOrder);
+            item.setProduct(p);
+            item.setProductCode(p.getCode());
+            item.setProductName(p.getName());
+            item.setUnitPrice(p.getCurrentPrice());
+            item.setQuantity(line.getQuantity());
+            orderItemRepository.save(item);
+            savedOrder.getItems().add(item);
+
+            p.setStockQuantity(p.getStockQuantity() - line.getQuantity());
+            productRepository.save(p);
+        }
+
+        customerService.refreshStatus(orderCustomer);
+        cartService.clearCart(session, userId);
+
+        if (session != null) {
+            session.setAttribute(SESSION_LAST_ORDER_ID, savedOrder.getId());
+        }
+
+        emailService.sendOrderConfirmation(savedOrder);
+
+        return savedOrder;
+    }
+
+    private Order handleUpdateExistingOrder(Long orderId, ReceiverForm form, List<CartLine> cartLines, HttpSession session, Long userId) {
+        Order order = getCustomerOrderDetails(orderId, userId);
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new BusinessException("Chỉ được sửa đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
+        }
+
+        // Hoàn lại kho cũ
+        for (OrderItem item : order.getItems()) {
+            if (item.getProduct() != null) {
+                Product p = productRepository.findByIdWithLock(item.getProduct().getId()).orElse(null);
+                if (p != null) {
+                    p.setStockQuantity(p.getStockQuantity() + item.getQuantity());
+                    productRepository.save(p);
+                }
+            }
+        }
+
+        // Kiểm tra tồn kho mới và trừ kho
+        BigDecimal newTotal = BigDecimal.ZERO;
+        List<Product> lockedProducts = new ArrayList<>();
+        for (CartLine line : cartLines) {
+            Product p = productRepository.findByIdWithLock(line.getProductId())
+                    .orElseThrow(() -> new OutOfStockException(line.getName()));
+            if (!p.isVisible() || p.getStockQuantity() < line.getQuantity()) {
+                throw new OutOfStockException(p.getName());
+            }
+            lockedProducts.add(p);
+            newTotal = newTotal.add(p.getCurrentPrice().multiply(BigDecimal.valueOf(line.getQuantity())));
+        }
+
+        orderItemRepository.deleteByOrderId(order.getId());
+        order.getItems().clear();
+
+        for (int i = 0; i < cartLines.size(); i++) {
+            CartLine line = cartLines.get(i);
+            Product p = lockedProducts.get(i);
+
+            OrderItem newItem = new OrderItem();
+            newItem.setOrder(order);
+            newItem.setProduct(p);
+            newItem.setProductCode(p.getCode());
+            newItem.setProductName(p.getName());
+            newItem.setUnitPrice(p.getCurrentPrice());
+            newItem.setQuantity(line.getQuantity());
+            orderItemRepository.save(newItem);
+            order.getItems().add(newItem);
+
+            p.setStockQuantity(p.getStockQuantity() - line.getQuantity());
+            productRepository.save(p);
+        }
+
+        order.setReceiverName(form.getFullName().trim());
+        order.setReceiverGender(form.getGender());
+        order.setReceiverEmail(form.getEmail().trim().toLowerCase());
+        order.setReceiverMobile(form.getMobile().trim());
+        order.setReceiverAddress(form.getAddress().trim());
+        order.setNote(form.getNote() != null ? form.getNote().trim() : null);
+        order.setTotalAmount(newTotal);
+
+        customerService.upsertFromReceiver(form);
+
+        Order savedOrder = orderRepository.save(order);
+
+        cartService.clearCart(session, userId);
+        if (session != null) {
+            session.removeAttribute(SESSION_EDITING_ORDER_ID);
+            session.setAttribute(SESSION_LAST_ORDER_ID, savedOrder.getId());
+        }
+
+        emailService.sendOrderConfirmation(savedOrder);
+
+        return savedOrder;
+    }
+
+    @Override
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng."));
+    }
+
+    @Override
+    public Page<Order> getCustomerOrders(Long userId, int page) {
+        Customer customer = customerService.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản chưa có thông tin khách hàng."));
+
+        int pageIndex = page > 0 ? page - 1 : 0;
+        int defaultPageSize = (appProperties != null && appProperties.getPageSize() > 0) ? appProperties.getPageSize() : pageSize;
+        Pageable pageable = PageRequest.of(pageIndex, defaultPageSize);
+
+        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId(), pageable);
+    }
+
+    @Override
+    public Order getCustomerOrderDetails(Long orderId, Long userId) {
+        Customer customer = customerService.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản chưa có thông tin khách hàng."));
+
+        return orderRepository.findByIdAndCustomerId(orderId, customer.getId())
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng hoặc bạn không có quyền xem đơn này."));
+    }
+
+    @Override
+    @Transactional
+    public void prepareUpdateOrder(Long orderId, Long userId, HttpSession session) {
+        Order order = getCustomerOrderDetails(orderId, userId);
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new BusinessException("Chỉ được sửa đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
+        }
+
+        cartService.loadOrderItemsToCart(session, userId, orderId);
+        if (session != null) {
+            session.setAttribute(SESSION_EDITING_ORDER_ID, orderId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        Order order = getCustomerOrderDetails(orderId, userId);
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new BusinessException("Chỉ được hủy đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        for (OrderItem item : order.getItems()) {
+            if (item.getProduct() != null) {
+                Product product = productRepository.findByIdWithLock(item.getProduct().getId()).orElse(null);
+                if (product != null) {
+                    product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                    productRepository.save(product);
+                }
+            }
+        }
+
+        orderRepository.save(order);
+        customerService.refreshStatus(order.getCustomer());
+    }
+
+    private void assignRoundRobinSale(Order order) {
+        try {
+            List<Long> candidateIds = orderRepository.findRoundRobinSaleCandidates();
+            if (candidateIds != null && !candidateIds.isEmpty()) {
+                Long saleId = candidateIds.get(0);
+                userRepository.findById(saleId).ifPresent(order::setAssignedSale);
+            }
+        } catch (Exception ex) {
+            log.warn("Không thể tự động phân công Sale xoay vòng: {}", ex.getMessage());
+        }
+    }
+
+    private String generateOrderCode() {
+        long count = orderRepository.count();
+        String code = String.format("OD%06d", count + 1);
+        while (orderRepository.existsByCode(code)) {
+            code = String.format("OD%06d", count + 1 + new Random().nextInt(10000));
+        }
+        return code;
+    }
+
+    // ==========================================
+    // SALE HELPER METHODS
+    // ==========================================
 
     private void changeStatus(Order order, OrderStatus next) {
         OrderStatus current = order.getStatus();

@@ -1,11 +1,13 @@
 package com.swd392.onlineshop.service.impl;
 
+import com.swd392.onlineshop.config.AppProperties;
 import com.swd392.onlineshop.dto.request.PostFilter;
 import com.swd392.onlineshop.dto.request.PostForm;
 import com.swd392.onlineshop.dto.response.PostRow;
 import com.swd392.onlineshop.dto.response.PostView;
 import com.swd392.onlineshop.entity.Post;
 import com.swd392.onlineshop.entity.User;
+import com.swd392.onlineshop.exception.NotFoundException;
 import com.swd392.onlineshop.repository.PostRepository;
 import com.swd392.onlineshop.repository.UserRepository;
 import com.swd392.onlineshop.service.FileStorageService;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -38,6 +41,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final AppProperties appProperties;
 
     @Value("${app.page-size:10}")
     private int pageSize;
@@ -108,15 +112,16 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Long create(PostForm form, String authorEmail) {
         User author = userRepository.findByEmail(authorEmail)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy tài khoản đang đăng nhập."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tài khoản tác giả không tồn tại."));
         Post p = new Post();
-        p.setThumbnail(fileStorageService.store(form.getThumbnailFile(), FOLDER));
-        apply(p, form);
-        p.setAuthor(author);
-        // Ma BV0001 sinh theo id: luu ma tam truoc de co id
         p.setCode(tempCode());
+        p.setAuthor(author);
+        if (hasFile(form.getThumbnailFile())) {
+            p.setThumbnail(fileStorageService.store(form.getThumbnailFile(), FOLDER));
+        }
+        apply(p, form);
         postRepository.saveAndFlush(p);
-        p.setCode(String.format("BV%04d", p.getId()));
+        p.setCode("BV" + String.format("%04d", p.getId()));
         return p.getId();
     }
 
@@ -136,6 +141,41 @@ public class PostServiceImpl implements PostService {
         Post p = find(id);
         p.setVisible(!p.isVisible());
         return p.isVisible();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> getFeaturedPosts(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return postRepository.findByVisibleTrueAndFeaturedTrue(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> getLatestPosts(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        return postRepository.findByVisibleTrue(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Post> getPublicPosts(PostFilter filter) {
+        int pageIndex = (filter.getPage() != null && filter.getPage() > 0) ? filter.getPage() - 1 : 0;
+        int defaultPageSize = (appProperties != null && appProperties.getPageSize() > 0) ? appProperties.getPageSize() : pageSize;
+        Pageable pageable = PageRequest.of(pageIndex, defaultPageSize);
+
+        String keyword = (filter.getKeyword() != null && !filter.getKeyword().isBlank())
+                ? filter.getKeyword().trim()
+                : null;
+
+        return postRepository.findPublicPosts(keyword, filter.getCategoryId(), pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Post getPublicPostById(Long id) {
+        return postRepository.findByIdAndVisibleTrue(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy bài viết hoặc bài viết đã bị ẩn."));
     }
 
     private void apply(Post p, PostForm form) {

@@ -9,13 +9,18 @@ import com.swd392.onlineshop.entity.Feedback;
 import com.swd392.onlineshop.entity.FeedbackImage;
 import com.swd392.onlineshop.entity.Product;
 import com.swd392.onlineshop.entity.User;
+import com.swd392.onlineshop.exception.NotFoundException;
 import com.swd392.onlineshop.repository.CustomerRepository;
+import com.swd392.onlineshop.repository.FeedbackImageRepository;
 import com.swd392.onlineshop.repository.FeedbackRepository;
 import com.swd392.onlineshop.repository.ProductRepository;
 import com.swd392.onlineshop.repository.UserRepository;
+import com.swd392.onlineshop.service.CustomerService;
 import com.swd392.onlineshop.service.FeedbackService;
+import com.swd392.onlineshop.service.FileStorageService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,21 +29,27 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FeedbackServiceImpl implements FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
+    private final FeedbackImageRepository feedbackImageRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CustomerService customerService;
+    private final FileStorageService fileStorageService;
 
     @Value("${app.page-size:10}")
     private int pageSize;
@@ -123,16 +134,14 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     @Transactional
     public Long create(FeedbackForm form) {
-        Feedback f = new Feedback();
         Customer customer = requireCustomer(form.getEmail());
-        f.setCustomer(customer);
-        f.setGender(customer.getGender());
-        f.setMobile(customer.getMobile());
-        apply(f, form);
-        // Ma PH0001 sinh theo id: luu ma tam truoc de co id
+        Feedback f = new Feedback();
         f.setCode(tempCode());
+        f.setCustomer(customer);
+        f.setSource("Website");
+        apply(f, form);
         feedbackRepository.saveAndFlush(f);
-        f.setCode(String.format("PH%04d", f.getId()));
+        f.setCode("PH" + String.format("%04d", f.getId()));
         return f.getId();
     }
 
@@ -140,15 +149,10 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Transactional
     public void update(Long id, FeedbackForm form, String actorEmail) {
         Feedback f = find(id);
-        String email = normalizeEmail(form.getEmail());
-        if (!f.getCustomer().getEmail().equalsIgnoreCase(email)) {
-            Customer customer = requireCustomer(email);
-            f.setCustomer(customer);
-            f.setGender(customer.getGender());
-            f.setMobile(customer.getMobile());
-        }
-        apply(f, form);
+        Customer customer = requireCustomer(form.getEmail());
+        f.setCustomer(customer);
         f.setUpdatedBy(requireUser(actorEmail));
+        apply(f, form);
     }
 
     @Override
@@ -158,6 +162,69 @@ public class FeedbackServiceImpl implements FeedbackService {
         f.setVisible(!f.isVisible());
         f.setUpdatedBy(requireUser(actorEmail));
         return f.isVisible();
+    }
+
+    @Override
+    @Transactional
+    public Feedback submitFeedback(FeedbackForm form, Long userId) {
+        Product product = null;
+        if (form.getProductId() != null) {
+            product = productRepository.findByIdAndVisibleTrue(form.getProductId())
+                    .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại hoặc đã ngừng kinh doanh."));
+        }
+
+        Customer customer = customerService.findOrCreateContact(
+                form.getEmail(),
+                form.getFullName(),
+                form.getGender(),
+                form.getMobile()
+        );
+
+        Feedback feedback = new Feedback();
+        feedback.setCode(generateFeedbackCode());
+        feedback.setCustomer(customer);
+        feedback.setProduct(product);
+        feedback.setFullName(form.getFullName().trim());
+        feedback.setEmail(form.getEmail().trim().toLowerCase(Locale.ROOT));
+        feedback.setMobile(form.getMobile() != null ? form.getMobile().trim() : null);
+        feedback.setGender(form.getGender());
+        feedback.setRating(form.getRating() != null ? form.getRating() : 5);
+        feedback.setSubject(form.getSubject() != null && !form.getSubject().isBlank()
+                ? form.getSubject().trim()
+                : (product != null ? "Phản hồi về " + product.getName() : "Ý kiến đóng góp dịch vụ"));
+        feedback.setContent(form.getContent().trim());
+        feedback.setSource("Website");
+        feedback.setVisible(true);
+
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+
+        if (form.getImages() != null && !form.getImages().isEmpty()) {
+            for (MultipartFile file : form.getImages()) {
+                if (file != null && !file.isEmpty()) {
+                    try {
+                        String imageUrl = fileStorageService.store(file, "feedbacks");
+                        FeedbackImage fi = new FeedbackImage();
+                        fi.setFeedback(savedFeedback);
+                        fi.setImageUrl(imageUrl);
+                        feedbackImageRepository.save(fi);
+                        savedFeedback.getImages().add(fi);
+                    } catch (Exception ex) {
+                        log.warn("Lỗi upload ảnh feedback lên Cloudinary: {}", ex.getMessage());
+                    }
+                }
+            }
+        }
+
+        return savedFeedback;
+    }
+
+    private String generateFeedbackCode() {
+        long count = feedbackRepository.count();
+        String code = String.format("PH%04d", count + 1);
+        while (feedbackRepository.existsByCode(code)) {
+            code = String.format("PH%04d", count + 1 + new Random().nextInt(1000));
+        }
+        return code;
     }
 
     private void apply(Feedback f, FeedbackForm form) {
