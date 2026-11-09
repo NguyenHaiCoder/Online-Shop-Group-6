@@ -1,49 +1,22 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Cấu hình')}"></head>
-<body class="staff-body">
-<div class="staff-shell">
-    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content"
-         th:with="creating=${#strings.endsWith(#request.requestURI, '/new')},
-                  locked=${!#strings.endsWith(#request.requestURI, '/new') && form != null && form.type != null && form.type.name() == 'USER_ROLE'}">
-        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm cấu hình' : 'Chi tiết cấu hình')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="card form-grid" th:object="${form}" method="post"
-              th:action="${creating} ? @{/admin/settings} : @{|${#request.requestURI}|}">
-            <p class="hint" th:if="${locked}">Vai trò có sẵn chỉ sửa được tên, mô tả và thứ tự.</p>
-            <input type="hidden" th:if="${locked}" name="type" th:value="*{type}">
-            <input type="hidden" th:if="${locked}" name="value" th:value="*{value}">
-            <input type="hidden" th:if="${locked}" name="active" th:value="*{active}">
-            <label class="field">Nhóm
-                <select th:field="*{type}" required th:disabled="${locked}">
-                    <option th:each="type : ${T(com.swd392.onlineshop.enums.SettingType).values()}" th:value="${type}" th:text="${type.name()}"></option>
-                </select>
-                <small class="field-error" th:errors="*{type}"></small>
-            </label>
-            <label class="field">Tên hiển thị
-                <input th:field="*{name}" required maxlength="100">
-                <small class="field-error" th:errors="*{name}"></small>
-            </label>
-            <label class="field">Mã giá trị
-                <input th:field="*{value}" required maxlength="100" th:readonly="${locked}">
-                <small class="field-error" th:errors="*{value}"></small>
-            </label>
-            <label class="field">Thứ tự
-                <input type="number" th:field="*{displayOrder}">
-            </label>
-            <label class="field">Mô tả
-                <textarea th:field="*{description}" maxlength="500" rows="3"></textarea>
-            </label>
-            <label class="checks"><input type="checkbox" th:field="*{active}" th:disabled="${locked}"> Đang dùng</label>
-            <div class="form-actions">
-                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
-                <a class="btn btn-ghost" th:href="@{/admin/settings}">Quay lại</a>
-            </div>
-        </form>
-    </div>
-</div>
-<div th:replace="~{fragments/header :: modals('')}"></div>
-<script th:src="@{/js/ui.js}"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Cấu hình hệ thống')}"></head>
+<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm cấu hình' : (${editing} ? 'Chỉnh sửa cấu hình' : 'Chi tiết cấu hình'))}"></header>
+<div th:replace="~{fragments/header :: messages}"></div><a th:href="@{/admin/settings}">← Quay lại danh sách</a>
+<th:block th:if="${!editing}"><div class="split"><p class="muted">Thông tin cấu hình hệ thống.</p><div class="row-actions"><a class="btn" th:href="@{|/admin/settings/${recordId}/edit|}">Chỉnh sửa</a><button class="btn-ghost" data-open="visibility-detail" th:text="${form.active} ? 'Ẩn cấu hình' : 'Hiện cấu hình'"></button></div></div>
+<section class="card"><h2 th:text="${form.name}"></h2><dl class="detail-grid"><dt>Mã cấu hình</dt><dd th:text="${form.code}"></dd><dt>Nhóm</dt><dd th:text="${form.groupName}"></dd><dt>Loại</dt><dd th:text="${form.type}"></dd><dt>Thứ tự</dt><dd th:text="${form.displayOrder}"></dd><dt>Giá trị</dt><dd class="preserve-lines" th:text="${form.value}"></dd><dt>Mô tả</dt><dd th:text="${form.description}"></dd><dt>Trạng thái</dt><dd><span th:replace="~{fragments/header :: visibility(${form.active})}"></span></dd><dt>Ngày tạo</dt><dd><span th:replace="~{fragments/header :: when(${view.createdAt})}"></span></dd><dt>Ngày cập nhật</dt><dd><span th:replace="~{fragments/header :: when(${view.updatedAt})}"></span></dd></dl></section>
+<div th:replace="~{fragments/admin :: visibilityDialog('visibility-detail', '/admin/settings/' + ${recordId} + '/toggle', ${form.name}, ${form.active})}"></div></th:block>
+<form th:if="${editing}" class="card form-grid admin-form" th:object="${form}" method="post" th:action="${creating} ? @{/admin/settings} : @{|/admin/settings/${recordId}|}">
+<div class="flash err span-all" th:if="${#fields.hasAnyErrors()}"><p th:each="err : ${#fields.allErrors()}" th:text="${err}"></p></div>
+<p class="hint span-all" th:if="${locked}">Mã quyền và loại của vai trò có sẵn được giữ cố định. Không thể ẩn vai trò đang được sử dụng.</p>
+<label class="field">Tên cấu hình *<input th:field="*{name}" required maxlength="100"></label>
+<label class="field">Mã cấu hình *<input th:field="*{code}" required maxlength="100"></label>
+<label class="field">Loại *<select th:field="*{type}" required th:disabled="${locked}"><option value="">Chọn loại</option><option th:each="t : ${T(com.swd392.onlineshop.enums.SettingType).values()}" th:value="${t}" th:text="${t}"></option></select></label>
+<input type="hidden" th:if="${locked}" name="type" th:value="*{type}">
+<label class="field">Thứ tự *<input type="number" th:field="*{displayOrder}" required min="0"></label>
+<label class="field span-all">Nhóm hiển thị<input th:field="*{groupName}" maxlength="100"></label>
+<label class="field span-all">Giá trị *<textarea th:field="*{value}" required maxlength="1000" rows="4" th:readonly="${locked}"></textarea></label>
+<label class="field span-all">Mô tả<textarea th:field="*{description}" maxlength="500" rows="3"></textarea></label>
+<label class="field">Trạng thái<select th:field="*{active}"><option value="true">Hiển thị</option><option value="false">Ẩn</option></select></label>
+<div class="form-actions span-all"><a class="btn btn-ghost" th:href="${creating} ? @{/admin/settings} : @{|/admin/settings/${recordId}|}">Hủy</a><button type="submit" th:text="${creating} ? 'Tạo cấu hình' : 'Lưu thay đổi'"></button></div>
+</form></main></div><script th:src="@{/js/ui.js}"></script></body></html>

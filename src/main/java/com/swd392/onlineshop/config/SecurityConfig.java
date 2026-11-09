@@ -14,12 +14,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final com.swd392.onlineshop.service.AuthService authService;
     private final LoginSuccessHandler loginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterAfter(new SessionRoleFilter(authService), org.springframework.security.web.context.SecurityContextHolderFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
@@ -31,7 +33,6 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/uploads/**",
                                 "/error",
                                 "/favicon.ico"
                         ).permitAll()
@@ -54,6 +55,9 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth/login?logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
         return http.build();

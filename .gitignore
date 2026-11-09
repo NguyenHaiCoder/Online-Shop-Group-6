@@ -36,3 +36,11 @@ out/
 
 ### Uploaded files ###
 uploads/
+
+.env
+.env.*
+!.env.example
+
+target-local-run.log
+
+.ui-review/

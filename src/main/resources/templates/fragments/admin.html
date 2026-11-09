@@ -1,0 +1,10 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><body>
+<div th:fragment="visibilityDialog(key, action, label, visible)" class="modal" th:id="|modal-${key}|" role="dialog" aria-modal="true" aria-label="Xác nhận trạng thái hiển thị">
+<div class="modal-backdrop" data-close></div>
+<section class="auth-card"><button class="modal-close" type="button" data-close aria-label="Đóng">×</button>
+<h2 th:text="${visible} ? 'Xác nhận ẩn' : 'Xác nhận hiển thị'"></h2>
+<p>Bạn có muốn <span th:text="${visible} ? 'ẩn' : 'hiển thị'"></span> <strong th:text="${label}"></strong>?</p>
+<p class="hint">Thao tác chỉ đổi trạng thái hiển thị, không xóa dữ liệu. Ẩn người dùng không khóa đăng nhập.</p>
+<form th:action="@{${action}}" method="post" class="form-actions"><button class="btn-ghost" type="button" data-close>Quay lại</button><button type="submit" th:text="${visible} ? 'Xác nhận ẩn' : 'Hiển thị'"></button></form>
+</section></div>
+</body></html>

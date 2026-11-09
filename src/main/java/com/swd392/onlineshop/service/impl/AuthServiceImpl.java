@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -21,19 +21,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email == null ? "" : email.trim())
                 .orElseThrow(() -> new UsernameNotFoundException("Khong tim thay tai khoan"));
-        boolean active = user.getStatus() == UserStatus.ACTIVE;
+        boolean active = user.getStatus() == UserStatus.ACTIVE
+                && user.getRole() != null && user.getRole().isActive()
+                && user.getRole().getType() == com.swd392.onlineshop.enums.SettingType.USER_ROLE
+                && SettingServiceImpl.ROLE_VALUES.contains(user.getRole().getValue());
         return org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
                 .password(user.getPassword())
-                .authorities("ROLE_" + user.getRole().getValue())
+                .authorities(active ? "ROLE_" + user.getRole().getValue() : "ROLE_DISABLED")
                 .disabled(!active)
                 .build();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<UserStatus> findStatusByEmail(String email) {
-        return userRepository.findByEmail(email).map(User::getStatus);
-    }
 }

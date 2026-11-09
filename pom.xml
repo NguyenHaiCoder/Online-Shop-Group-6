@@ -66,12 +66,6 @@
             <artifactId>flyway-sqlserver</artifactId>
         </dependency>
 
-        <!-- Email Service (Verify Email) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-
         <!-- Cloudinary: upload anh va lay secure_url -->
         <dependency>
             <groupId>com.cloudinary</groupId>
@@ -93,6 +87,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- In-memory database for integration tests only. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

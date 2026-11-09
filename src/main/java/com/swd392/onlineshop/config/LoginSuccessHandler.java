@@ -25,11 +25,11 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException {
         String target = "/";
         if (hasRole(authentication, "ADMIN")) {
-            target = "/admin/dashboard";
+            target = "/admin/users";
         } else if (hasRole(authentication, "MARKETING")) {
-            target = "/marketing/dashboard";
+            target = "/marketing/products";
         } else if (hasRole(authentication, "SALE") || hasRole(authentication, "SALE_MANAGER")) {
-            target = "/sales/dashboard";
+            target = "/sales/orders";
         } else {
             SavedRequest saved = requestCache.getRequest(request, response);
             if (saved != null && saved.getRedirectUrl() != null && !saved.getRedirectUrl().isBlank()) {

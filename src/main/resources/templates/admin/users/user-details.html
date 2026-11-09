@@ -1,59 +1,32 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Người dùng')}"></head>
-<body class="staff-body">
-<div class="staff-shell">
-    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
-        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm người dùng' : 'Chi tiết người dùng')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="card form-grid" th:object="${form}" method="post"
-              th:action="${creating} ? @{/admin/users} : @{|${#request.requestURI}|}">
-            <img class="avatar-lg" th:if="${user != null && user.avatar != null}" th:src="${user.avatar}" alt="">
-            <p class="hint" th:if="${!creating}">Khi sửa chỉ đổi được vai trò và trạng thái. Không tự đổi vai trò hoặc tự khóa tài khoản của mình.</p>
-            <p class="hint" th:if="${creating}">Mật khẩu ngẫu nhiên sẽ được gửi qua email.</p>
-            <label class="field">Họ tên
-                <input th:field="*{fullName}" required minlength="2" maxlength="100" th:readonly="${!creating}">
-                <small class="field-error" th:errors="*{fullName}"></small>
-            </label>
-            <label class="field">Email
-                <input type="email" th:field="*{email}" required maxlength="100" th:readonly="${!creating}">
-                <small class="field-error" th:errors="*{email}"></small>
-            </label>
-            <input type="hidden" th:if="${!creating}" name="gender" th:value="*{gender}">
-            <label class="field">Giới tính
-                <select th:field="*{gender}" th:disabled="${!creating}">
-                    <option value="">Chọn</option>
-                    <option th:each="g : ${T(com.swd392.onlineshop.enums.Gender).values()}" th:value="${g}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
-                </select>
-            </label>
-            <label class="field">Số điện thoại
-                <input th:field="*{mobile}" maxlength="15" th:readonly="${!creating}">
-            </label>
-            <label class="field">Địa chỉ
-                <input th:field="*{address}" maxlength="255" th:readonly="${!creating}">
-            </label>
-            <label class="field">Vai trò
-                <select th:field="*{roleId}" required>
-                    <option value="">Chọn</option>
-                    <option th:each="role : ${roles != null ? roles : T(java.util.Collections).emptyList()}" th:value="${role.id}" th:text="${role.name}"></option>
-                </select>
-                <small class="field-error" th:errors="*{roleId}"></small>
-            </label>
-            <label class="field">Trạng thái
-                <select th:field="*{status}" required>
-                    <option th:each="st : ${T(com.swd392.onlineshop.enums.UserStatus).values()}" th:value="${st}" th:text="${st.name() == 'NOT_VERIFIED' ? 'Chưa xác minh' : (st.name() == 'ACTIVE' ? 'Hoạt động' : 'Đã khóa')}"></option>
-                </select>
-                <small class="field-error" th:errors="*{status}"></small>
-            </label>
-            <div class="form-actions">
-                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
-                <a class="btn btn-ghost" th:href="@{/admin/users}">Quay lại</a>
-            </div>
-        </form>
-    </div>
-</div>
-<div th:replace="~{fragments/header :: modals('')}"></div>
-<script th:src="@{/js/ui.js}"></script>
-</body>
-</html>
+<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm người dùng' : (${editing} ? 'Chỉnh sửa người dùng' : 'Chi tiết người dùng'))}"></header>
+<div th:replace="~{fragments/header :: messages}"></div>
+<a th:href="@{/admin/users}">← Quay lại danh sách</a>
+<th:block th:if="${!editing}">
+<div class="split"><p class="muted">Xem thông tin chi tiết của người dùng trong hệ thống.</p><div class="row-actions"><a class="btn" th:href="@{|/admin/users/${recordId}/edit|}">Chỉnh sửa</a><button class="btn-ghost" data-open="visibility-detail" th:text="${form.visible} ? 'Ẩn người dùng' : 'Hiện người dùng'"></button></div></div>
+<section class="card profile-summary"><img class="avatar-lg" th:if="${view.info.avatar != null}" th:src="${view.info.avatar}" alt="Ảnh đại diện"><div><h2 th:text="${form.fullName}"></h2><p th:text="${form.code}"></p><span th:replace="~{fragments/header :: visibility(${form.visible})}"></span></div></section>
+<section class="card"><h2>Thông tin người dùng</h2><dl class="detail-grid">
+<dt>Họ tên</dt><dd th:text="${form.fullName}"></dd><dt>Email</dt><dd th:text="${form.email}"></dd><dt>Số điện thoại</dt><dd th:text="${form.mobile}"></dd>
+<dt>Vai trò</dt><dd th:text="${view.info.role.name}"></dd><dt>Địa chỉ</dt><dd th:text="${form.address}"></dd><dt>Xác minh email</dt><dd th:text="${form.emailVerified} ? 'Đã xác minh' : 'Chưa xác minh'"></dd>
+<dt>Trạng thái đăng nhập</dt><dd><span th:replace="~{fragments/header :: userStatus(${form.status})}"></span></dd>
+</dl></section><section class="card"><h2>Thông tin hệ thống</h2><dl class="detail-grid"><dt>Ngày tạo</dt><dd><span th:replace="~{fragments/header :: when(${view.createdAt})}"></span></dd><dt>Ngày cập nhật</dt><dd><span th:replace="~{fragments/header :: when(${view.updatedAt})}"></span></dd></dl></section>
+<div th:replace="~{fragments/admin :: visibilityDialog('visibility-detail', '/admin/users/' + ${recordId} + '/toggle', ${form.fullName}, ${form.visible})}"></div>
+</th:block>
+<form th:if="${editing}" class="card form-grid admin-form" th:object="${form}" method="post" enctype="multipart/form-data" th:action="${creating} ? @{/admin/users} : @{|/admin/users/${recordId}|}">
+<div class="flash err span-all" th:if="${#fields.hasAnyErrors()}"><p th:each="err : ${#fields.allErrors()}" th:text="${err}"></p></div>
+<label class="field span-all">Ảnh đại diện (tùy chọn)<input type="file" th:field="*{avatarFile}" accept="image/jpeg,image/png,image/webp"><small class="hint">JPG, PNG, WEBP. Tối đa 2 MB.</small></label>
+<label class="field">Họ tên *<input th:field="*{fullName}" required minlength="2" maxlength="100"></label>
+<label class="field">Email *<input type="email" th:field="*{email}" required maxlength="100" th:readonly="${!creating}"></label>
+<label class="field">Số điện thoại<input th:field="*{mobile}" maxlength="15"></label>
+<label class="field">Vai trò *<select th:field="*{roleId}" required><option value="">Chọn vai trò</option><option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option></select></label>
+<label class="field" th:if="${creating}">Mật khẩu khởi tạo *<input type="password" th:field="*{password}" required minlength="6" maxlength="32" autocomplete="new-password"><small class="hint">6–32 ký tự, có chữ và số.</small></label>
+<label class="field" th:if="${creating}">Xác nhận mật khẩu *<input type="password" th:field="*{confirmPassword}" required minlength="6" maxlength="32" autocomplete="new-password"></label>
+<label class="field">Trạng thái hiển thị<select th:field="*{visible}"><option value="true">Hiển thị</option><option value="false">Ẩn</option></select></label>
+<label class="field">Trạng thái đăng nhập<select th:field="*{status}"><option value="ACTIVE">Hoạt động</option><option value="INACTIVE">Đã khóa</option><option value="NOT_VERIFIED">Chưa kích hoạt</option></select></label>
+<label class="field">Địa chỉ<input th:field="*{address}" maxlength="255"></label>
+<label class="field">Giới tính<select th:field="*{gender}"><option value="">Chọn</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label>
+<label class="checks"><input type="checkbox" th:field="*{emailVerified}"> Đã xác minh email</label>
+<div class="form-actions span-all"><a class="btn btn-ghost" th:href="${creating} ? @{/admin/users} : @{|/admin/users/${recordId}|}">Hủy</a><button type="submit" th:text="${creating} ? 'Tạo người dùng' : 'Lưu thay đổi'"></button></div>
+</form></main></div><script th:src="@{/js/ui.js}"></script></body></html>

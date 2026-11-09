@@ -1,62 +1,17 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Cấu hình hệ thống')}"></head>
-<body class="staff-body">
-<div class="staff-shell">
-    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content">
-        <header th:replace="~{fragments/staff-menu :: top('Cấu hình hệ thống')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <div class="split">
-            <form class="filters" method="get" th:action="@{/admin/settings}">
-                <input type="search" name="keyword" placeholder="Mã cấu hình" th:value="${param.keyword != null ? param.keyword[0] : ''}">
-                <select name="type">
-                    <option value="">Mọi nhóm</option>
-                    <option th:each="type : ${T(com.swd392.onlineshop.enums.SettingType).values()}" th:value="${type}" th:text="${type.name()}" th:selected="${param.type != null && param.type[0] == type.name()}"></option>
-                </select>
-                <select name="active">
-                    <option value="">Mọi trạng thái</option>
-                    <option value="true" th:selected="${param.active != null && param.active[0] == 'true'}">Đang dùng</option>
-                    <option value="false" th:selected="${param.active != null && param.active[0] == 'false'}">Ngừng dùng</option>
-                </select>
-                <button type="submit">Lọc</button>
-            </form>
-            <a class="btn" th:href="@{/admin/settings/new}">Thêm cấu hình</a>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th><a th:replace="~{fragments/pagination :: sort('id', 'Mã')}"></a></th>
-                    <th><a th:replace="~{fragments/pagination :: sort('type', 'Nhóm')}"></a></th>
-                    <th><a th:replace="~{fragments/pagination :: sort('value', 'Mã giá trị')}"></a></th>
-                    <th><a th:replace="~{fragments/pagination :: sort('displayOrder', 'Thứ tự')}"></a></th>
-                    <th><a th:replace="~{fragments/pagination :: sort('active', 'Trạng thái')}"></a></th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="6" class="empty">Chưa có cấu hình.</td></tr>
-                <tr th:if="${page != null}" th:each="row : ${page.content}">
-                    <td th:text="${row.id}"></td>
-                    <td th:text="${row.type}"></td>
-                    <td><a th:href="@{|/admin/settings/${row.id}|}" th:text="${row.value}">Mã</a></td>
-                    <td th:text="${row.displayOrder}"></td>
-                    <td><span class="badge" th:classappend="${row.active} ? 'badge-on' : 'badge-off'" th:text="${row.active} ? 'Đang dùng' : 'Ngừng dùng'"></span></td>
-                    <td class="row-actions">
-                        <a th:href="@{|/admin/settings/${row.id}|}">Sửa</a>
-                        <form class="inline" th:action="@{|/admin/settings/${row.id}/toggle|}" method="post">
-                            <button class="btn-ghost" type="submit" th:text="${row.active} ? 'Ngừng' : 'Dùng lại'">Ngừng</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
-    </div>
-</div>
-<div th:replace="~{fragments/header :: modals('')}"></div>
-<script th:src="@{/js/ui.js}"></script>
-</body>
-</html>
+<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top('Cấu hình hệ thống')}"></header>
+<div th:replace="~{fragments/header :: messages}"></div>
+<div class="split"><p class="muted">Quản lý các nội dung và thiết lập hiển thị trên website.</p><a class="btn" th:href="@{/admin/settings/new}">＋ Thêm cấu hình</a></div>
+<form class="filters card" method="get" th:action="@{/admin/settings}" th:object="${settingFilter}">
+<input type="search" th:field="*{keyword}" placeholder="Tìm theo mã hoặc tên cấu hình">
+<select th:field="*{type}"><option value="">Tất cả nhóm</option><option th:each="t : ${T(com.swd392.onlineshop.enums.SettingType).values()}" th:value="${t}" th:text="${t}"></option></select>
+<select th:field="*{active}"><option value="">Tất cả trạng thái</option><option value="true">Hiển thị</option><option value="false">Ẩn</option></select><button type="submit">Lọc</button><a th:href="@{/admin/settings}">Đặt lại</a>
+</form><div class="table-wrap"><table><thead><tr>
+<th><a th:replace="~{fragments/pagination :: sort('name', 'Tên cấu hình')}"></a></th><th>Mã cấu hình</th><th>Nhóm</th><th><a th:replace="~{fragments/pagination :: sort('displayOrder', 'Thứ tự')}"></a></th><th>Giá trị</th><th>Trạng thái</th><th>Thao tác</th>
+</tr></thead><tbody><tr th:if="${page.empty}"><td colspan="7" class="empty">Chưa có cấu hình phù hợp.</td></tr>
+<tr th:each="row : ${page.content}"><td><a th:href="@{|/admin/settings/${row.id}|}" th:text="${row.name}"></a></td><td th:text="${row.code}"></td><td th:text="${row.groupName}"></td><td th:text="${row.displayOrder}"></td><td class="truncate" th:text="${row.value}"></td><td><span th:replace="~{fragments/header :: visibility(${row.active})}"></span></td>
+<td class="row-actions"><a th:href="@{|/admin/settings/${row.id}/edit|}">Sửa</a><button type="button" class="btn-ghost" th:attr="data-open=|visibility-${row.id}|" th:text="${row.active} ? 'Ẩn' : 'Hiện'"></button>
+<div th:replace="~{fragments/admin :: visibilityDialog('visibility-' + ${row.id}, '/admin/settings/' + ${row.id} + '/toggle', ${row.name}, ${row.active})}"></div></td></tr>
+</tbody></table><nav th:replace="~{fragments/pagination :: pager(${page})}"></nav></div></main></div><script th:src="@{/js/ui.js}"></script></body></html>

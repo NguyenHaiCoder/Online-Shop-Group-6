@@ -3,7 +3,7 @@
 <body>
 <aside th:fragment="menu" class="side">
     <a class="brand" th:href="@{/}">
-        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="#2563eb" d="M6 4h8.5l6.2 14.2L26.2 4H30L20.2 28h-7.2L6 4z"/></svg>
+        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="#2563eb" d="M0 28 8 4h6L6 28zM8 4h6l10 24h-6zM18 28 26 4h6l-8 24z"/></svg>
         NOVA SHOP
     </a>
     <span class="role-pill" sec:authorize="hasRole('ADMIN')">Admin</span>
@@ -12,7 +12,6 @@
     <span class="role-pill" sec:authorize="hasRole('SALE') and !hasRole('SALE_MANAGER')">Sale</span>
 
     <div sec:authorize="hasRole('ADMIN')">
-        <a class="nav-link" th:href="@{/admin/dashboard}" th:classappend="${#strings.startsWith(#request.requestURI, '/admin/dashboard')} ? 'is-active'">Tổng quan</a>
         <th:block th:if="${adminMenus != null}">
             <a class="nav-link" th:each="item : ${adminMenus}" th:href="@{${item.value}}" th:text="${item.name}"
                th:classappend="${#strings.startsWith(#request.requestURI, item.value)} ? 'is-active'">Menu</a>
@@ -28,11 +27,9 @@
         <a class="nav-link" th:href="@{/marketing/sliders}" th:classappend="${#strings.startsWith(#request.requestURI, '/marketing/sliders')} ? 'is-active'">Slider</a>
         <a class="nav-link" th:href="@{/marketing/customers}" th:classappend="${#strings.startsWith(#request.requestURI, '/marketing/customers')} ? 'is-active'">Khách hàng</a>
         <a class="nav-link" th:href="@{/marketing/feedbacks}" th:classappend="${#strings.startsWith(#request.requestURI, '/marketing/feedbacks')} ? 'is-active'">Phản hồi</a>
-        <a class="nav-link" th:href="@{/marketing/dashboard}" th:classappend="${#strings.startsWith(#request.requestURI, '/marketing/dashboard')} ? 'is-active'">Tổng quan</a>
     </div>
     <div sec:authorize="hasAnyRole('SALE','SALE_MANAGER')">
         <a class="nav-link" th:href="@{/sales/orders}" th:classappend="${#strings.startsWith(#request.requestURI, '/sales/orders')} ? 'is-active'">Đơn hàng</a>
-        <a class="nav-link" th:href="@{/sales/dashboard}" th:classappend="${#strings.startsWith(#request.requestURI, '/sales/dashboard')} ? 'is-active'">Tổng quan</a>
     </div>
     <form th:action="@{/auth/logout}" method="post">
         <button type="submit">Đăng xuất</button>
@@ -45,7 +42,7 @@
         <div class="who">
             <span class="avatar">N</span>
             <span>
-                <strong sec:authentication="name">email</strong>
+                <strong th:text="${currentUser != null ? currentUser.fullName : #authentication.name}">Người dùng</strong>
                 <small sec:authorize="hasRole('ADMIN')">Admin</small>
                 <small sec:authorize="hasRole('MARKETING')">Marketing</small>
                 <small sec:authorize="hasRole('SALE_MANAGER')">Sale Manager</small>

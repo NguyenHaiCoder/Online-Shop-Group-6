@@ -21,8 +21,8 @@ import lombok.Setter;
  * - Spring Security form login (session): username = email, password = BCrypt,
  *   authority = "ROLE_" + role.value, chi cho dang nhap khi status = ACTIVE.
  * - User Profile: sua thong tin + avatar, khong duoc sua email.
- * - Admin (User List / User Details): them moi -> sinh mat khau ngau nhien gui qua email;
- *   khi sua chi duoc doi role va status.
+ * - Admin (User List / User Details): them moi -> nhap va xac nhan mat khau, luu BCrypt;
+ *   sua thong tin, role, status, visible; khong doi email/mat khau qua form sua.
  * - Sale ACTIVE duoc tu dong giao don xoay vong (xem Order.assignedSale).
  */
 @Getter

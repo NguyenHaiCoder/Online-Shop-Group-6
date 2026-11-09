@@ -14,7 +14,7 @@
     <a class="skip" href="#content">Bỏ qua điều hướng</a>
     <div class="header-inner">
         <a class="brand" th:href="@{/}">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#2563eb" d="M6 4h8.5l6.2 14.2L26.2 4H30L20.2 28h-7.2L6 4z"/></svg>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#2563eb" d="M0 28 8 4h6L6 28zM8 4h6l10 24h-6zM18 28 26 4h6l-8 24z"/></svg>
             NOVA SHOP
         </a>
         <button type="button" class="nav-toggle" data-nav-toggle>Menu</button>
@@ -41,15 +41,15 @@
             <details class="account" sec:authorize="isAuthenticated()">
                 <summary class="user-chip">
                     <span class="avatar">N</span>
-                    <span sec:authentication="name">Nguyễn Minh Anh</span>
+                    <span th:text="${currentUser != null ? currentUser.fullName : #authentication.name}">Người dùng</span>
                 </summary>
                 <div class="account-menu">
                     <a href="#" data-open="profile">Hồ sơ</a>
                     <a href="#" data-open="password">Đổi mật khẩu</a>
                     <a sec:authorize="hasRole('CUSTOMER')" th:href="@{/my-orders}">Đơn hàng của tôi</a>
-                    <a sec:authorize="hasRole('MARKETING')" th:href="@{/marketing/dashboard}">Khu vực Marketing</a>
-                    <a sec:authorize="hasAnyRole('SALE','SALE_MANAGER')" th:href="@{/sales/dashboard}">Khu vực bán hàng</a>
-                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}">Khu vực quản trị</a>
+                    <a sec:authorize="hasRole('MARKETING')" th:href="@{/marketing/products}">Khu vực Marketing</a>
+                    <a sec:authorize="hasAnyRole('SALE','SALE_MANAGER')" th:href="@{/sales/orders}">Khu vực bán hàng</a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}">Khu vực quản trị</a>
                     <form th:action="@{/auth/logout}" method="post"><button type="submit">Đăng xuất</button></form>
                 </div>
             </details>

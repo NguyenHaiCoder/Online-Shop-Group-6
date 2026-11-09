@@ -9,12 +9,13 @@
         <button type="button" class="modal-close" data-close aria-label="Đóng">×</button>
         <div class="center">
             <div class="brand" style="justify-content:center;">
-                <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="#2563eb" d="M6 4h8.5l6.2 14.2L26.2 4H30L20.2 28h-7.2L6 4z"/></svg>
+                <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="#2563eb" d="M0 28 8 4h6L6 28zM8 4h6l10 24h-6zM18 28 26 4h6l-8 24z"/></svg>
                 NOVA SHOP
             </div>
             <p class="muted">Chào mừng bạn trở lại</p>
             <h1>Đăng nhập</h1>
         </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
         <p class="flash err" th:if="${loginError}" th:text="${loginError}"></p>
         <p class="flash err" th:if="${loginError == null && param.error != null}">Email hoặc mật khẩu không đúng.</p>
         <p class="flash ok" th:if="${param.logout != null}">Bạn đã đăng xuất.</p>
@@ -27,7 +28,6 @@
             </label>
             <button class="btn-block" type="submit">Đăng nhập</button>
             <p class="center">Chưa có tài khoản? <a th:href="@{/auth/register}">Tạo tài khoản</a></p>
-            <p class="center"><a th:href="@{/auth/reset-password}">Quên mật khẩu?</a></p>
             <p class="center"><a th:href="@{/}">← Về trang chủ</a></p>
         </div>
     </form>
