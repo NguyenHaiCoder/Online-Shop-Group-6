@@ -101,17 +101,17 @@
                 <div class="checkout-summary-calc">
                     <div class="calc-line">
                         <span class="label">Tạm tính</span>
-                        <span class="value"><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">980.000 ₫</span></span>
+                        <span class="value"><span th:replace="~{fragments/header :: vnd(${subtotal != null ? subtotal : cartDrawerSubtotal})}">980.000 ₫</span></span>
                     </div>
                     <div class="calc-line">
                         <span class="label">Phí vận chuyển</span>
-                        <span class="value">30.000 ₫</span>
+                        <span class="value"><span th:replace="~{fragments/header :: vnd(${shippingFee != null ? shippingFee : 30000})}">30.000 ₫</span></span>
                     </div>
                 </div>
 
                 <div class="checkout-highlight-total-bar">
                     <span class="total-lbl">Tổng thanh toán</span>
-                    <span class="total-amount-val" th:text="${#numbers.formatDecimal((lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0) + 30000, 0, 'POINT', 0, 'COMMA') + ' ₫'}">1.010.000 ₫</span>
+                    <span class="total-amount-val"><span th:replace="~{fragments/header :: vnd(${totalAmount != null ? totalAmount : cartDrawerTotal})}">1.010.000 ₫</span></span>
                 </div>
             </aside>
         </div>

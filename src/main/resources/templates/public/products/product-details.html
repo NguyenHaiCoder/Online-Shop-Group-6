@@ -28,10 +28,10 @@
 
                 <!-- Dải ảnh thu nhỏ bên dưới -->
                 <div class="gallery-thumbnails-strip" th:if="${product.images != null and !product.images.empty}">
-                    <button type="button" class="gallery-thumb-btn active" th:onclick="'switchMainImage(\'' + ${product.thumbnail} + '\', this)'">
+                    <button type="button" class="gallery-thumb-btn active" th:data-img="${product.thumbnail}" onclick="switchMainImage(this.dataset.img, this)">
                         <img th:src="${product.thumbnail}" th:alt="${product.name}">
                     </button>
-                    <button type="button" class="gallery-thumb-btn" th:each="img : ${product.images}" th:onclick="'switchMainImage(\'' + ${img.imageUrl} + '\', this)'">
+                    <button type="button" class="gallery-thumb-btn" th:each="img : ${product.images}" th:data-img="${img.imageUrl}" onclick="switchMainImage(this.dataset.img, this)">
                         <img th:src="${img.imageUrl}" alt="">
                     </button>
                 </div>
@@ -190,7 +190,7 @@
     <div class="drawer-footer-summary" th:if="${cartDrawerLines != null and !cartDrawerLines.empty}">
         <div class="summary-line">
             <span class="s-label">Tạm tính</span>
-            <span class="s-value" th:text="${#numbers.formatDecimal(#aggregates.sum(cartDrawerLines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">980.000 ₫</span>
+            <span class="s-value"><span th:replace="~{fragments/header :: vnd(${cartDrawerSubtotal})}">980.000 ₫</span></span>
         </div>
         <div class="summary-line">
             <span class="s-label">Phí vận chuyển</span>
@@ -198,7 +198,7 @@
         </div>
         <div class="summary-total-line">
             <span class="total-title">Tổng thanh toán</span>
-            <span class="total-val" th:text="${#numbers.formatDecimal(#aggregates.sum(cartDrawerLines.![lineTotal]) + 30000, 0, 'POINT', 0, 'COMMA') + ' ₫'}">1.010.000 ₫</span>
+            <span class="total-val"><span th:replace="~{fragments/header :: vnd(${cartDrawerTotal})}">1.010.000 ₫</span></span>
         </div>
 
         <!-- 2 Nút hành động -->

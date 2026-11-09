@@ -108,4 +108,21 @@ public class GlobalModelAdvice {
         }
         return cartService.getCartLines(session, userId);
     }
+
+    @ModelAttribute("cartDrawerSubtotal")
+    public java.math.BigDecimal cartDrawerSubtotal(HttpServletRequest request, Authentication authentication) {
+        List<com.swd392.onlineshop.dto.response.CartLine> lines = cartDrawerLines(request, authentication);
+        if (lines == null || lines.isEmpty()) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return lines.stream()
+                .map(com.swd392.onlineshop.dto.response.CartLine::getLineTotal)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    @ModelAttribute("cartDrawerTotal")
+    public java.math.BigDecimal cartDrawerTotal(HttpServletRequest request, Authentication authentication) {
+        java.math.BigDecimal subtotal = cartDrawerSubtotal(request, authentication);
+        return subtotal.add(java.math.BigDecimal.valueOf(30000));
+    }
 }

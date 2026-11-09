@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -131,8 +132,15 @@ public class CartController {
             });
         }
 
+        BigDecimal subtotal = lines.stream().map(CartLine::getLineTotal).reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        java.math.BigDecimal shippingFee = java.math.BigDecimal.valueOf(30000);
+        java.math.BigDecimal totalAmount = subtotal.add(shippingFee);
+
         model.addAttribute("form", form);
         model.addAttribute("lines", lines);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("shippingFee", shippingFee);
+        model.addAttribute("totalAmount", totalAmount);
         return "public/cart/cart-contact";
     }
 
