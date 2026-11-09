@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* Fragment dung chung cho cac man Marketing: icon va modal xac nhan An (PR05, MP05, MS05, MC05, MF05). */-->
+
+<span th:fragment="icon(name)" class="mk-icon" th:switch="${name}">
+    <svg th:case="'edit'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></svg>
+    <svg th:case="'eye'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+    <svg th:case="'eye-off'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7c2 0 3.7.6 5.1 1.5M22 12s-3.5 7-10 7c-2 0-3.7-.6-5.1-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>
+    <svg th:case="'plus'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    <svg th:case="'back'" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <svg th:case="'user'" viewBox="0 0 24 24" width="44" height="44" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg>
+</span>
+
+<!--/* Modal xac nhan An. modalId dung voi data-open (ui.js mo phan tu co id "modal-" + modalId). */-->
+<div th:fragment="hideModal(modalId, heading, name, note, action, from, confirmLabel)" class="modal" th:id="|modal-${modalId}|">
+    <div class="modal-backdrop" data-close></div>
+    <div class="mk-confirm" role="dialog" aria-modal="true">
+        <span class="mk-confirm-icon"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span></span>
+        <h2 th:text="${heading}">Ẩn?</h2>
+        <p class="mk-confirm-name" th:text="${name}">Tên</p>
+        <p class="muted" th:text="${note}">Ghi chú</p>
+        <form class="mk-confirm-actions" th:action="${action}" method="post">
+            <input type="hidden" name="from" th:value="${from}">
+            <button type="button" class="btn-ghost" data-close>Quay lại</button>
+            <button type="submit" th:text="${confirmLabel}">Ẩn</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

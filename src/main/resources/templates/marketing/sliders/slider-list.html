@@ -2,47 +2,63 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/header :: head('Slider')}"></head>
 <body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
     <div class="staff-content" id="content">
+        <!--/* MS01 Danh sach slider */-->
         <header th:replace="~{fragments/staff-menu :: top('Slider')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <div class="split">
-            <form class="filters" method="get" th:action="@{/marketing/sliders}">
-                <input type="search" name="keyword" placeholder="Tiêu đề hoặc liên kết" th:value="${param.keyword != null ? param.keyword[0] : ''}">
-                <select name="visible">
-                    <option value="">Mọi trạng thái</option>
-                    <option value="true" th:selected="${param.visible != null && param.visible[0] == 'true'}">Hiển thị</option>
-                    <option value="false" th:selected="${param.visible != null && param.visible[0] == 'false'}">Ẩn</option>
-                </select>
-                <button type="submit">Lọc</button>
-            </form>
-            <a class="btn" th:href="@{/marketing/sliders/new}">Thêm slider</a>
+        <div class="mk-bar">
+            <p class="mk-sub">Quản lý thông tin và trạng thái hiển thị của slider.</p>
+            <a class="btn" th:href="@{/marketing/sliders/new}"><span th:replace="~{fragments/marketing :: icon('plus')}"></span>Thêm slider</a>
         </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <form class="card mk-toolbar" method="get" th:action="@{/marketing/sliders}">
+            <input type="search" name="keyword" th:value="${filter.keyword}" placeholder="Tìm theo tiêu đề, nội dung ngắn hoặc liên kết đích">
+            <select name="visible">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true" th:selected="${filter.visible == true}">Hiển thị</option>
+                <option value="false" th:selected="${filter.visible == false}">Ẩn</option>
+            </select>
+            <button type="submit">Lọc</button>
+        </form>
+
         <div class="table-wrap">
-            <table>
+            <table class="mk-table">
                 <thead>
-                <tr><th>Mã</th><th>Ảnh</th><th>Tiêu đề</th><th>Liên kết</th><th>Trạng thái</th><th></th></tr>
+                <tr><th>Ảnh banner</th><th>Tiêu đề</th><th>Liên kết đích</th><th>Thứ tự</th><th>Trạng thái</th><th>Thao tác</th></tr>
                 </thead>
                 <tbody>
-                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="6" class="empty">Chưa có slider.</td></tr>
-                <tr th:if="${page != null}" th:each="row : ${page.content}">
-                    <td th:text="${row.id}"></td>
-                    <td><img class="thumb-sm" th:src="${row.image}" alt=""></td>
-                    <td class="wrap"><a th:href="@{|/marketing/sliders/${row.id}|}" th:text="${row.title}">Slider</a></td>
-                    <td th:text="${row.backlink}"></td>
+                <tr th:if="${page.totalElements == 0}"><td colspan="6" class="empty">Chưa có slider.</td></tr>
+                <tr th:each="row : ${page.content}">
+                    <td><img class="mk-banner" th:src="${row.image}" alt=""></td>
+                    <td><a class="mk-name" th:href="@{|/marketing/sliders/${row.id}|}" th:text="${row.title}">Tiêu đề</a></td>
+                    <td th:text="${row.backlink}">/san-pham</td>
+                    <td th:text="${row.displayOrder}">1</td>
                     <td><span th:replace="~{fragments/header :: visibility(${row.visible})}"></span></td>
-                    <td class="row-actions">
-                        <a th:href="@{|/marketing/sliders/${row.id}|}">Sửa</a>
-                        <form class="inline" th:action="@{|/marketing/sliders/${row.id}/toggle|}" method="post">
-                            <button class="btn-ghost" type="submit" th:text="${row.visible} ? 'Ẩn' : 'Hiện'">Ẩn</button>
-                        </form>
+                    <td>
+                        <div class="mk-row-actions">
+                            <a class="mk-link" th:href="@{|/marketing/sliders/${row.id}/edit|}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span th:replace="~{fragments/marketing :: icon('edit')}"></span></a>
+                            <a class="mk-link" th:if="${row.visible}" href="#" th:attr="data-open=|hide-${row.id}|"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span>Ẩn</a>
+                            <form th:unless="${row.visible}" th:action="@{|/marketing/sliders/${row.id}/toggle|}" method="post">
+                                <input type="hidden" name="from" value="list">
+                                <button class="mk-link" type="submit"><span th:replace="~{fragments/marketing :: icon('eye')}"></span>Hiện</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+
+        <!--/* MS05 Xac nhan an slider */-->
+        <th:block th:each="row : ${page.content}" th:if="${row.visible}">
+            <div th:replace="~{fragments/marketing :: hideModal(|hide-${row.id}|, 'Ẩn slider?', ${row.title},
+                    'Slider sẽ không xuất hiện trên trang chủ. Thông tin slider vẫn được giữ nguyên.',
+                    @{|/marketing/sliders/${row.id}/toggle|}, 'list', 'Ẩn slider')}"></div>
+        </th:block>
     </div>
 </div>
 <div th:replace="~{fragments/header :: modals('')}"></div>

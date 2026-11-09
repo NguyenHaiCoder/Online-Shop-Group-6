@@ -1,38 +1,66 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Slider')}"></head>
+<head th:replace="~{fragments/header :: head('Chi tiết slider')}"></head>
 <body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
-        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm slider' : 'Chi tiết slider')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="card form-grid" th:object="${form}" method="post" enctype="multipart/form-data"
-              th:action="${creating} ? @{/marketing/sliders} : @{|${#request.requestURI}|}">
-            <img th:if="${slider != null}" th:src="${slider.image}" alt="" style="max-width:320px">
-            <label class="field">Ảnh
-                <input type="file" name="image" accept="image/jpeg,image/png,image/webp" th:required="${creating}">
-            </label>
-            <label class="field">Tiêu đề
-                <input th:field="*{title}" required maxlength="255">
-                <small class="field-error" th:errors="*{title}"></small>
-            </label>
-            <label class="field">Liên kết
-                <input th:field="*{backlink}" maxlength="255" placeholder="/products hoặc https://">
-                <small class="field-error" th:errors="*{backlink}"></small>
-            </label>
-            <label class="field">Ghi chú
-                <textarea th:field="*{notes}" maxlength="500" rows="3"></textarea>
-            </label>
-            <label class="field">Thứ tự
-                <input type="number" th:field="*{displayOrder}">
-            </label>
-            <label class="checks"><input type="checkbox" th:field="*{visible}"> Hiển thị</label>
-            <div class="form-actions">
-                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
-                <a class="btn btn-ghost" th:href="@{/marketing/sliders}">Quay lại</a>
+    <div class="staff-content" id="content">
+        <!--/* MS03 Chi tiet slider */-->
+        <header th:replace="~{fragments/staff-menu :: top('Chi tiết slider')}"></header>
+        <div class="mk-bar">
+            <a class="mk-back" th:href="@{/marketing/sliders}"><span th:replace="~{fragments/marketing :: icon('back')}"></span>Quay lại danh sách</a>
+            <div class="mk-actions">
+                <a class="btn" th:href="@{|/marketing/sliders/${slider.id}/edit|}"><span th:replace="~{fragments/marketing :: icon('edit')}"></span>Chỉnh sửa</a>
+                <button th:if="${slider.visible}" type="button" class="mk-outline" data-open="hide-slider"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span>Ẩn slider</button>
+                <form th:unless="${slider.visible}" th:action="@{|/marketing/sliders/${slider.id}/toggle|}" method="post">
+                    <input type="hidden" name="from" value="detail">
+                    <button type="submit" class="mk-outline"><span th:replace="~{fragments/marketing :: icon('eye')}"></span>Hiện slider</button>
+                </form>
             </div>
-        </form>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <section class="card mk-card">
+            <div class="mk-title-row">
+                <h2 th:text="${slider.title}">Tiêu đề</h2>
+                <span th:replace="~{fragments/header :: visibility(${slider.visible})}"></span>
+            </div>
+        </section>
+
+        <div class="mk-grid-wide">
+            <section class="card mk-card">
+                <h2>Ảnh banner</h2>
+                <img class="mk-cover" th:src="${slider.image}" alt="">
+                <small class="muted">Tỉ lệ ảnh gợi ý 3:1.</small>
+            </section>
+            <section class="card mk-card">
+                <h2>Thông tin hệ thống</h2>
+                <table class="mk-kv">
+                    <tr><td>Ngày tạo</td><td th:text="${#temporals.format(slider.createdAt, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><td>Ngày cập nhật</td><td th:text="${#temporals.format(slider.updatedAt, 'dd/MM/yyyy')}"></td></tr>
+                </table>
+            </section>
+        </div>
+
+        <section class="card mk-card">
+            <h2>Thông tin nội dung</h2>
+            <table class="mk-kv">
+                <tr><td>Tiêu đề</td><td th:text="${slider.title}"></td></tr>
+                <tr><td>Nội dung ngắn</td><td th:text="${slider.notes}"></td></tr>
+                <tr><td>Nhãn nút</td><td th:text="${slider.buttonLabel}"></td></tr>
+                <tr><td>Liên kết đích</td><td th:text="${slider.backlink}"></td></tr>
+                <tr><td>Thứ tự</td><td th:text="${slider.displayOrder}"></td></tr>
+                <tr><td>Trạng thái</td><td><span th:replace="~{fragments/header :: visibility(${slider.visible})}"></span></td></tr>
+            </table>
+        </section>
+
+        <!--/* MS05 Xac nhan an slider */-->
+        <th:block th:if="${slider.visible}">
+            <div th:replace="~{fragments/marketing :: hideModal('hide-slider', 'Ẩn slider?', ${slider.title},
+                    'Slider sẽ không xuất hiện trên trang chủ. Thông tin slider vẫn được giữ nguyên.',
+                    @{|/marketing/sliders/${slider.id}/toggle|}, 'detail', 'Ẩn slider')}"></div>
+        </th:block>
     </div>
 </div>
 <div th:replace="~{fragments/header :: modals('')}"></div>

@@ -2,26 +2,78 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/header :: head('Chi tiết phản hồi')}"></head>
 <body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
     <div class="staff-content" id="content">
+        <!--/* MF03 Chi tiet phan hoi */-->
         <header th:replace="~{fragments/staff-menu :: top('Chi tiết phản hồi')}"></header>
-        <div th:replace="~{fragments/header :: messages}"></div>
-        <article class="card stack">
-            <p><span th:replace="~{fragments/header :: visibility(${feedback.visible})}"></span></p>
-            <h2 th:text="${feedback.fullName}">Tên</h2>
-            <p th:text="|${feedback.email} · ${feedback.mobile}|">Liên hệ</p>
-            <p>Sản phẩm: <span th:text="${feedback.product != null ? feedback.product.name : 'Phản hồi chung'}"></span></p>
-            <p class="stars"><th:block th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</th:block></p>
-            <p th:text="${feedback.content}">Nội dung</p>
-            <div class="gallery">
-                <img th:each="image : ${feedback.images}" th:src="${image.imageUrl}" alt="">
+        <div class="mk-bar">
+            <a class="mk-back" th:href="@{/marketing/feedbacks}"><span th:replace="~{fragments/marketing :: icon('back')}"></span>Quay lại danh sách</a>
+            <div class="mk-actions">
+                <a class="btn" th:href="@{|/marketing/feedbacks/${feedback.id}/edit|}"><span th:replace="~{fragments/marketing :: icon('edit')}"></span>Chỉnh sửa</a>
+                <button th:if="${feedback.visible}" type="button" class="mk-outline" data-open="hide-feedback"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span>Ẩn phản hồi</button>
+                <form th:unless="${feedback.visible}" th:action="@{|/marketing/feedbacks/${feedback.id}/toggle|}" method="post">
+                    <input type="hidden" name="from" value="detail">
+                    <button type="submit" class="mk-outline"><span th:replace="~{fragments/marketing :: icon('eye')}"></span>Hiện phản hồi</button>
+                </form>
             </div>
-            <form th:action="@{|/marketing/feedbacks/${feedback.id}/toggle|}" method="post">
-                <button type="submit" th:text="${feedback.visible} ? 'Ẩn phản hồi' : 'Hiện phản hồi'">Ẩn</button>
-                <a class="btn btn-ghost" th:href="@{/marketing/feedbacks}">Quay lại</a>
-            </form>
-        </article>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <div class="mk-title-row">
+            <h2 th:text="${feedback.subject}">Chủ đề</h2>
+            <span th:replace="~{fragments/header :: visibility(${feedback.visible})}"></span>
+        </div>
+
+        <div class="mk-grid">
+            <section class="card mk-card">
+                <h2>Thông tin phản hồi</h2>
+                <table class="mk-kv">
+                    <tr><td>Mã phản hồi</td><td><strong th:text="${feedback.code}"></strong></td></tr>
+                    <tr><td>Nguồn</td><td th:text="${feedback.source}"></td></tr>
+                    <tr><td>Người gửi</td><td th:text="${feedback.fullName}"></td></tr>
+                    <tr><td>Email</td><td th:text="${feedback.email}"></td></tr>
+                    <tr><td>Chủ đề</td><td th:text="${feedback.subject}"></td></tr>
+                </table>
+            </section>
+            <section class="card mk-card">
+                <h2>Trạng thái &amp; thời gian</h2>
+                <table class="mk-kv">
+                    <tr><td>Trạng thái</td><td><span th:replace="~{fragments/header :: visibility(${feedback.visible})}"></span></td></tr>
+                    <tr><td>Ngày tạo</td><td th:text="${#temporals.format(feedback.createdAt, 'dd/MM/yyyy')}"></td></tr>
+                    <tr><td>Cập nhật bởi</td><td th:text="${feedback.updatedByName != null ? feedback.updatedByName : '—'}"></td></tr>
+                    <tr><td>Cập nhật lúc</td><td th:text="${#temporals.format(feedback.updatedAt, 'dd/MM/yyyy HH:mm')}"></td></tr>
+                </table>
+            </section>
+        </div>
+
+        <section class="card mk-card">
+            <h2>Sản phẩm liên quan</h2>
+            <div class="mk-product-chip" th:if="${feedback.productId != null}">
+                <img th:if="${feedback.productThumbnail != null}" th:src="${feedback.productThumbnail}" alt="">
+                <div>
+                    <span class="mk-code" th:text="${feedback.productCode}">KB001</span>
+                    <p style="margin:0"><strong th:text="${feedback.productName}">Tên sản phẩm</strong></p>
+                </div>
+            </div>
+            <p class="muted" th:if="${feedback.productId == null}">Phản hồi chung, không gắn với sản phẩm.</p>
+        </section>
+
+        <section class="card mk-card">
+            <h2>Nội dung phản hồi</h2>
+            <p class="mk-box" th:text="${feedback.content}"></p>
+            <div class="mk-images" th:if="${!feedback.imageUrls.isEmpty()}">
+                <img th:each="url : ${feedback.imageUrls}" th:src="${url}" alt="">
+            </div>
+        </section>
+
+        <!--/* MF05 Xac nhan an phan hoi */-->
+        <th:block th:if="${feedback.visible}">
+            <div th:replace="~{fragments/marketing :: hideModal('hide-feedback', 'Ẩn phản hồi?', ${feedback.subject},
+                    'Phản hồi sẽ không xuất hiện ở các nơi hiển thị công khai. Nội dung vẫn được giữ nguyên.',
+                    @{|/marketing/feedbacks/${feedback.id}/toggle|}, 'detail', 'Ẩn phản hồi')}"></div>
+        </th:block>
     </div>
 </div>
 <div th:replace="~{fragments/header :: modals('')}"></div>

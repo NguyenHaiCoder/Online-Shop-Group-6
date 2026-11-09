@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(${creating} ? 'Thêm khách hàng' : 'Chỉnh sửa khách hàng')}"></head>
+<body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <!--/* MC02 Them khach hang, MC04 Chinh sua khach hang */-->
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm khách hàng' : 'Chỉnh sửa khách hàng')}"></header>
+        <div class="mk-bar">
+            <p class="mk-sub" th:text="${creating} ? 'Tạo hồ sơ khách hàng mới để quản lý và chăm sóc khách hàng hiệu quả.' : |Cập nhật thông tin khách hàng ${customer.fullName} (${customer.code})|">Mô tả</p>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <form class="card mk-form" th:object="${form}" method="post"
+              th:action="${creating} ? @{/marketing/customers} : @{|/marketing/customers/${customer.id}|}">
+            <div class="form-grid">
+                <label class="field"><span>Họ tên <b class="req">*</b></span>
+                    <input th:field="*{fullName}" minlength="2" maxlength="100" required placeholder="Nhập họ và tên khách hàng">
+                    <small class="field-error" th:errors="*{fullName}"></small>
+                </label>
+                <label class="field"><span>Email <b class="req">*</b></span>
+                    <input type="email" th:field="*{email}" maxlength="100" required placeholder="Nhập email khách hàng"
+                           th:readonly="${customer != null && customer.linkedAccount}">
+                    <small class="hint" th:if="${customer != null && customer.linkedAccount}">Email đã gắn với tài khoản, không đổi được.</small>
+                    <small class="field-error" th:errors="*{email}"></small>
+                </label>
+                <label class="field"><span>Số điện thoại <b class="req">*</b></span>
+                    <input th:field="*{mobile}" maxlength="10" required placeholder="Nhập số điện thoại (ví dụ: 0901234567)">
+                    <small class="field-error" th:errors="*{mobile}"></small>
+                </label>
+                <label class="field"><span>Địa chỉ <b class="req">*</b></span>
+                    <input th:field="*{address}" maxlength="255" required placeholder="Nhập địa chỉ khách hàng">
+                    <small class="field-error" th:errors="*{address}"></small>
+                </label>
+                <label class="field full"><span>Ghi chú</span>
+                    <textarea th:field="*{note}" rows="3" maxlength="500" placeholder="Nhập ghi chú (ví dụ: ưu tiên liên hệ, nhu cầu đặc biệt, ...)"></textarea>
+                    <small class="field-error" th:errors="*{note}"></small>
+                </label>
+                <div class="field full"><span>Trạng thái <b class="req">*</b></span>
+                    <div class="mk-radios">
+                        <label class="mk-radio"><input type="radio" th:field="*{visible}" value="true"> Hiển thị</label>
+                        <label class="mk-radio"><input type="radio" th:field="*{visible}" value="false"> Ẩn</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mk-form-actions">
+                <a class="btn btn-ghost" th:href="${creating} ? @{/marketing/customers} : @{|/marketing/customers/${customer.id}|}">Hủy</a>
+                <button type="submit" th:text="${creating} ? 'Tạo hồ sơ khách hàng' : 'Lưu thay đổi'">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>

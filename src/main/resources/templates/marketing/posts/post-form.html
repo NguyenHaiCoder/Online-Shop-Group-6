@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(${creating} ? 'Thêm bài viết' : 'Chỉnh sửa bài viết')}"></head>
+<body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <!--/* MP02 Them bai viet, MP04 Chinh sua bai viet */-->
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm bài viết' : 'Chỉnh sửa bài viết')}"></header>
+        <div class="mk-bar">
+            <p class="mk-sub" th:text="${creating} ? 'Tạo bài viết mới để hiển thị trên website của NOVA SHOP.' : |Cập nhật bài viết ${post.code}|">Mô tả</p>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <form th:object="${form}" method="post" enctype="multipart/form-data"
+              th:action="${creating} ? @{/marketing/posts} : @{|/marketing/posts/${post.id}|}">
+            <section class="card mk-form">
+                <div class="form-grid">
+                    <div>
+                        <label class="field"><span>Tiêu đề <b class="req">*</b></span>
+                            <input th:field="*{title}" maxlength="255" required placeholder="Nhập tiêu đề bài viết...">
+                            <small class="field-error" th:errors="*{title}"></small>
+                        </label>
+                        <div class="field"><span>Ảnh đại diện <b class="req">*</b></span>
+                            <div class="mk-current" th:if="${post != null && post.thumbnail != null}">
+                                <figure><img th:src="${post.thumbnail}" alt=""><figcaption>Ảnh hiện tại</figcaption></figure>
+                            </div>
+                            <label class="drop">
+                                <span th:text="${creating} ? 'Chọn ảnh đại diện' : 'Chọn ảnh mới nếu muốn thay'">Chọn ảnh</span><br>
+                                <small>JPG, PNG, WEBP. Tối đa 5 MB.</small>
+                                <input type="file" name="thumbnailFile" accept="image/jpeg,image/png,image/webp" th:required="${creating}">
+                            </label>
+                            <small class="field-error" th:errors="*{thumbnailFile}"></small>
+                        </div>
+                        <label class="field"><span>Tóm tắt <b class="req">*</b></span>
+                            <textarea th:field="*{briefInfo}" rows="4" maxlength="160" required placeholder="Nhập tóm tắt ngắn gọn cho bài viết..."></textarea>
+                            <small class="mk-count">Tối đa 160 ký tự</small>
+                            <small class="field-error" th:errors="*{briefInfo}"></small>
+                        </label>
+                        <label class="field"><span>Trạng thái <b class="req">*</b></span>
+                            <select th:field="*{visible}">
+                                <option value="true">Hiển thị</option>
+                                <option value="false">Ẩn</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="field"><span>Nội dung <b class="req">*</b></span>
+                        <textarea th:field="*{content}" rows="22" required placeholder="Nhập nội dung bài viết..."></textarea>
+                        <small class="field-error" th:errors="*{content}"></small>
+                    </label>
+                </div>
+            </section>
+
+            <div class="mk-form-actions">
+                <a class="btn btn-ghost" th:href="${creating} ? @{/marketing/posts} : @{|/marketing/posts/${post.id}|}">Hủy</a>
+                <button type="submit" th:text="${creating} ? 'Tạo bài viết' : 'Lưu thay đổi'">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>
