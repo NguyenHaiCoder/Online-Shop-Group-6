@@ -9,7 +9,7 @@
     <section class="auth-card">
         <p class="eyebrow" th:text="${status} ?: 'Lỗi'">Lỗi</p>
         <h1 th:text="${error} ?: 'Không thực hiện được'">Không thực hiện được</h1>
-        <p th:text="${message} ?: ${errorMessage} ?: 'Đã có lỗi xảy ra. Vui lòng thử lại.'">Đã có lỗi xảy ra.</p>
+        <p th:text="${message != null and !#strings.isEmpty(message) ? message : (errorMessage != null ? errorMessage : 'Đã có lỗi xảy ra. Vui lòng thử lại.')}">Đã có lỗi xảy ra.</p>
         <p th:if="${productName}" th:text="|Sản phẩm: ${productName}|"></p>
         <p><a class="btn" th:href="@{/}">Về trang chủ</a></p>
     </section>
