@@ -29,7 +29,7 @@
     </div>
 
     <!-- Form thanh toán 2 cột -->
-    <form th:action="@{/cart/submit}" th:object="${form}" method="post" id="checkout-contact-form">
+    <form th:action="@{/cart/contact}" th:object="${form}" method="post" id="checkout-contact-form">
         <!-- Hidden gender để thỏa mãn @NotNull trong backend nếu form không hiển thị dropdown -->
         <input type="hidden" name="gender" th:value="${form.gender != null ? form.gender : 'MALE'}">
         <input type="hidden" name="paymentMethod" th:value="${form.paymentMethod != null ? form.paymentMethod : 'COD'}">

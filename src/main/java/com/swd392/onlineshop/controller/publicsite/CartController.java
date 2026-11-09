@@ -111,7 +111,16 @@ public class CartController {
         ReceiverForm form = new ReceiverForm();
         Object editingOrderId = session.getAttribute(OrderServiceImpl.SESSION_EDITING_ORDER_ID);
 
-        if (editingOrderId != null) {
+        ReceiverForm sessionForm = (ReceiverForm) session.getAttribute("CHECKOUT_RECEIVER_FORM");
+        if (sessionForm != null) {
+            form.setFullName(sessionForm.getFullName());
+            form.setGender(sessionForm.getGender());
+            form.setEmail(sessionForm.getEmail());
+            form.setMobile(sessionForm.getMobile());
+            form.setAddress(sessionForm.getAddress());
+            form.setNote(sessionForm.getNote());
+            form.setPaymentMethod(sessionForm.getPaymentMethod());
+        } else if (editingOrderId != null) {
             try {
                 Order order = orderService.getOrderById(Long.valueOf(editingOrderId.toString()));
                 form.setFullName(order.getReceiverName());
@@ -144,21 +153,83 @@ public class CartController {
         return "public/cart/cart-contact";
     }
 
+    @PostMapping("/contact")
+    public String postContact(@Valid @ModelAttribute("form") ReceiverForm form,
+                              BindingResult bindingResult,
+                              HttpSession session,
+                              Authentication authentication,
+                              Model model) {
+        Long userId = getUserId(authentication);
+        List<CartLine> lines = cartService.getCartLines(session, userId);
+        if (bindingResult.hasErrors()) {
+            BigDecimal subtotal = lines.stream().map(CartLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal shippingFee = BigDecimal.valueOf(30000);
+            BigDecimal totalAmount = subtotal.add(shippingFee);
+
+            model.addAttribute("lines", lines);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("shippingFee", shippingFee);
+            model.addAttribute("totalAmount", totalAmount);
+            return "public/cart/cart-contact";
+        }
+
+        session.setAttribute("CHECKOUT_RECEIVER_FORM", form);
+        return "redirect:/cart/check";
+    }
+
+    @GetMapping("/check")
+    public String cartCheck(HttpSession session,
+                            Authentication authentication,
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
+        Long userId = getUserId(authentication);
+        List<CartLine> lines = cartService.getCartLines(session, userId);
+        if (lines.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng của bạn đang trống.");
+            return "redirect:/cart";
+        }
+
+        ReceiverForm form = (ReceiverForm) session.getAttribute("CHECKOUT_RECEIVER_FORM");
+        if (form == null) {
+            return "redirect:/cart/contact";
+        }
+
+        BigDecimal subtotal = lines.stream().map(CartLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal shippingFee = BigDecimal.valueOf(30000);
+        BigDecimal totalAmount = subtotal.add(shippingFee);
+
+        model.addAttribute("form", form);
+        model.addAttribute("lines", lines);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("shippingFee", shippingFee);
+        model.addAttribute("totalAmount", totalAmount);
+        return "public/cart/cart-check";
+    }
+
     @PostMapping("/submit")
-    public String submitOrder(@Valid @ModelAttribute("form") ReceiverForm form,
+    public String submitOrder(@ModelAttribute("form") ReceiverForm form,
                               BindingResult bindingResult,
                               HttpSession session,
                               Authentication authentication,
                               Model model,
                               RedirectAttributes redirectAttributes) {
         Long userId = getUserId(authentication);
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("lines", cartService.getCartLines(session, userId));
-            return "public/cart/cart-contact";
+        ReceiverForm effectiveForm = form;
+        if (effectiveForm == null || effectiveForm.getFullName() == null || effectiveForm.getFullName().isBlank()) {
+            ReceiverForm sessionForm = (ReceiverForm) session.getAttribute("CHECKOUT_RECEIVER_FORM");
+            if (sessionForm != null) {
+                effectiveForm = sessionForm;
+            }
+        }
+
+        if (effectiveForm == null || effectiveForm.getFullName() == null || effectiveForm.getFullName().isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng nhập thông tin người nhận.");
+            return "redirect:/cart/contact";
         }
 
         try {
-            orderService.placeOrder(form, session, userId);
+            orderService.placeOrder(effectiveForm, session, userId);
+            session.removeAttribute("CHECKOUT_RECEIVER_FORM");
             return "redirect:/cart/completion";
         } catch (OutOfStockException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());

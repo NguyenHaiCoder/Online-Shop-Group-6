@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Kiểm tra đơn hàng')}"></head>
+<body class="checkout-page-body">
+<div th:replace="~{fragments/header :: bar}"></div>
+
+<main class="page checkout-page-main" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+
+    <!-- Stepper 3 bước (Bước 2 đang active) -->
+    <div class="checkout-stepper-wrap">
+        <div class="stepper-item step-completed">
+            <span class="step-circle">✓</span>
+            <span class="step-label">Thông tin nhận hàng</span>
+        </div>
+        <div class="stepper-line active-line"></div>
+        <div class="stepper-item step-done-or-active">
+            <span class="step-circle">2</span>
+            <span class="step-label">Kiểm tra đơn</span>
+        </div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item">
+            <span class="step-circle">3</span>
+            <span class="step-label">Hoàn tất</span>
+        </div>
+    </div>
+
+    <!-- Tiêu đề trang -->
+    <div class="checkout-review-header">
+        <h1 class="checkout-main-title">Kiểm tra đơn hàng</h1>
+        <p class="checkout-sub-title">Kiểm tra thông tin trước khi đặt hàng.</p>
+    </div>
+
+    <!-- Bố cục 2 cột -->
+    <div class="checkout-two-col-layout">
+        <!-- Cột trái: 3 Thẻ thông tin -->
+        <div class="checkout-left-cards-stack">
+            <!-- Thẻ 1: Thông tin người nhận -->
+            <section class="checkout-card-box review-receiver-box">
+                <div class="card-head-flex">
+                    <div class="card-head-left-title">
+                        <svg class="head-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <h2 class="card-head-title">Thông tin người nhận</h2>
+                    </div>
+                    <a th:href="@{/cart/contact}" class="link-edit-step">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        <span>Chỉnh sửa</span>
+                    </a>
+                </div>
+
+                <div class="review-receiver-content" th:if="${form != null}">
+                    <div class="rc-name" th:text="${form.fullName}">Nguyễn Minh Anh</div>
+                    <div class="rc-contact-line">
+                        <span class="rc-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            <span th:text="${form.mobile}">0901 234 567</span>
+                        </span>
+                        <span class="rc-divider">|</span>
+                        <span class="rc-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            <span th:text="${form.email}">minhanh@example.com</span>
+                        </span>
+                    </div>
+                    <div class="rc-address-line">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span th:text="${form.address}">Khu đô thị Hòa Lạc, Hà Nội</span>
+                    </div>
+                    <div class="rc-note-line" th:if="${form.note != null and !form.note.isBlank()}">
+                        <span class="rc-note-label">Ghi chú:</span>
+                        <span th:text="${form.note}">Nhập ghi chú cho đơn hàng</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Thẻ 2: Sản phẩm trong đơn hàng -->
+            <section class="checkout-card-box review-items-box">
+                <div class="card-head-flex">
+                    <div class="card-head-left-title">
+                        <svg class="head-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <h2 class="card-head-title">Sản phẩm trong đơn hàng</h2>
+                    </div>
+                </div>
+
+                <div class="review-items-table" th:if="${lines != null}">
+                    <div class="rit-head">
+                        <span class="col-sp">Sản phẩm</span>
+                        <span class="col-gia">Đơn giá</span>
+                        <span class="col-sl">Số lượng</span>
+                        <span class="col-tt">Thành tiền</span>
+                    </div>
+                    <div class="rit-body">
+                        <div class="rit-row" th:each="line : ${lines}">
+                            <div class="rit-sp-cell">
+                                <div class="rit-thumb">
+                                    <img th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="" class="rit-thumb-img">
+                                    <div th:if="${line.thumbnail == null}" class="rit-thumb-empty"></div>
+                                </div>
+                                <div class="rit-meta">
+                                    <span class="rit-code" th:if="${line.productCode != null}" th:text="${line.productCode}">KB001</span>
+                                    <strong class="rit-name" th:text="${line.name}">Bàn phím cơ Nova K68</strong>
+                                </div>
+                            </div>
+                            <div class="rit-gia-cell">
+                                <span th:replace="~{fragments/header :: vnd(${line.unitPrice})}">690.000 ₫</span>
+                            </div>
+                            <div class="rit-sl-cell">
+                                <span th:text="${line.quantity}">1</span>
+                            </div>
+                            <div class="rit-tt-cell">
+                                <strong th:replace="~{fragments/header :: vnd(${line.lineTotal})}">690.000 ₫</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Thẻ 3: Phương thức thanh toán -->
+            <section class="checkout-card-box review-payment-box">
+                <div class="card-head-flex">
+                    <div class="card-head-left-title">
+                        <svg class="head-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        <h2 class="card-head-title">Phương thức thanh toán</h2>
+                    </div>
+                </div>
+
+                <div class="payment-method-card active">
+                    <div class="pm-radio-circle">
+                        <div class="pm-radio-inner"></div>
+                    </div>
+                    <div class="pm-icon-wrap">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#d97706" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div class="pm-info-text">
+                        <strong class="pm-name">Thanh toán khi nhận hàng</strong>
+                        <p class="pm-desc">Thanh toán bằng tiền mặt cho nhân viên giao hàng.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Cột phải: Tóm tắt đơn hàng & Nút Đặt hàng -->
+        <aside class="checkout-card-box order-summary-sidebar">
+            <div class="card-head-flex">
+                <div class="card-head-left-title">
+                    <svg class="head-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h2 class="card-head-title">Tóm tắt đơn hàng</h2>
+                </div>
+            </div>
+
+            <div class="checkout-summary-calc">
+                <div class="calc-line">
+                    <span class="label" th:text="|Tạm tính (${lines.size()} sản phẩm)|">Tạm tính (2 sản phẩm)</span>
+                    <span class="value"><span th:replace="~{fragments/header :: vnd(${subtotal})}">980.000 ₫</span></span>
+                </div>
+                <div class="calc-line">
+                    <span class="label">Phí vận chuyển</span>
+                    <span class="value"><span th:replace="~{fragments/header :: vnd(${shippingFee})}">30.000 ₫</span></span>
+                </div>
+            </div>
+
+            <div class="checkout-calc-divider"></div>
+
+            <div class="checkout-highlight-total-bar review-total-bar">
+                <span class="total-lbl">Tổng thanh toán</span>
+                <span class="total-amount-val"><span th:replace="~{fragments/header :: vnd(${totalAmount})}">1.010.000 ₫</span></span>
+            </div>
+
+            <!-- Form submit đặt hàng -->
+            <form th:action="@{/cart/submit}" method="post" class="place-order-form">
+                <input type="hidden" name="fullName" th:value="${form.fullName}">
+                <input type="hidden" name="gender" th:value="${form.gender}">
+                <input type="hidden" name="email" th:value="${form.email}">
+                <input type="hidden" name="mobile" th:value="${form.mobile}">
+                <input type="hidden" name="address" th:value="${form.address}">
+                <input type="hidden" name="note" th:value="${form.note}">
+                <input type="hidden" name="paymentMethod" th:value="${form.paymentMethod}">
+
+                <button type="submit" class="btn-place-order">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span>Đặt hàng</span>
+                </button>
+            </form>
+
+            <a th:href="@{/cart/contact}" class="btn-review-back">← Quay lại</a>
+        </aside>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>

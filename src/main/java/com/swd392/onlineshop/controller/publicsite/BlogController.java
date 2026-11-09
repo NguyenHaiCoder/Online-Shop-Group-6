@@ -30,6 +30,11 @@ public class BlogController {
     public String blogDetails(@PathVariable("id") Long id, Model model) {
         Post post = postService.getPublicPostById(id);
         model.addAttribute("post", post);
+        java.util.List<Post> relatedPosts = postService.getLatestPosts(6).stream()
+                .filter(p -> !p.getId().equals(id))
+                .limit(2)
+                .toList();
+        model.addAttribute("relatedPosts", relatedPosts);
         return "public/blogs/blog-details";
     }
 }

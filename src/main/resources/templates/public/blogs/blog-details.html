@@ -1,18 +1,89 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head(${post.title})}"></head>
-<body>
+<body class="blog-details-page-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page blog-details-main" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <p class="crumbs"><a th:href="@{/}">Trang chủ</a> / <a th:href="@{/blogs}">Blog</a> / <span th:text="${post.title}">Bài viết</span></p>
-    <article class="card" style="padding:28px;">
-        <p class="muted"><span th:text="${post.category != null ? post.category.name : ''}"></span> · <span th:text="${post.author != null ? post.author.fullName : ''}"></span> · <span th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></span></p>
-        <h1 th:text="${post.title}">Tiêu đề</h1>
-        <img th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}" style="border-radius:16px; margin:12px 0; max-height:420px; width:100%; object-fit:cover;">
-        <div class="prose" th:text="${post.content}">Nội dung</div>
-    </article>
+
+    <!-- Breadcrumb: Trang chủ / Blog -->
+    <nav class="catalog-crumbs" aria-label="Breadcrumb">
+        <a th:href="@{/}">Trang chủ</a>
+        <span class="crumb-separator">/</span>
+        <a th:href="@{/blogs}">Blog</a>
+    </nav>
+
+    <!-- Bố cục 2 cột: Bài viết chính (trái) & Bài viết liên quan (phải) -->
+    <div class="blog-details-layout">
+        <!-- Cột trái: Chi tiết nội dung bài viết -->
+        <article class="blog-article-content">
+            <h1 class="article-main-title" th:text="${post.title}">5 phụ kiện giúp góc làm việc gọn gàng và hiệu quả hơn</h1>
+            
+            <div class="article-meta-date">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span th:text="${#temporals.format(post.updatedAt != null ? post.updatedAt : post.createdAt, 'dd/MM/yyyy')}">09/11/2026</span>
+            </div>
+
+            <!-- Ảnh lớn bài viết -->
+            <div class="article-featured-viewport" th:if="${post.thumbnail != null}">
+                <img th:src="${post.thumbnail}" th:alt="${post.title}" class="article-featured-img">
+            </div>
+
+            <!-- Nội dung bài viết -->
+            <div class="article-prose-body" th:utext="${post.content}">
+                <h3>Bắt đầu từ những món đồ bạn dùng mỗi ngày</h3>
+                <p>Một góc làm việc gọn gàng không nhất thiết phải cầu kỳ. Chỉ cần lựa chọn đúng những phụ kiện thiết yếu như bàn phím, chuột và tai nghe, bạn đã có thể tạo ra không gian làm việc ngăn nắp, thoải mái và sẵn sàng cho một ngày làm việc hiệu quả hơn.</p>
+
+                <h3>Giữ bàn làm việc thoáng và dễ tập trung</h3>
+                <p>Bàn phím cơ Nova K68 giúp thao tác gõ êm và chính xác, chuột không dây Nova M2 cho cảm giác cầm nắm thoải mái, di chuyển linh hoạt, còn tai nghe Nova H1 giúp giảm tiếng ồn xung quanh để bạn tập trung tốt hơn. Bộ ba phụ kiện này không chỉ tối ưu trải nghiệm làm việc mà còn giúp góc làm việc của bạn trông gọn gàng, hiện đại và chuyên nghiệp hơn.</p>
+            </div>
+
+            <!-- Nút Quay lại Blog -->
+            <div class="article-back-nav">
+                <a th:href="@{/blogs}" class="btn-back-to-blogs">← Quay lại Blog</a>
+            </div>
+        </article>
+
+        <!-- Cột phải: Card Bài viết liên quan -->
+        <aside class="blog-sidebar-col">
+            <div class="related-posts-card">
+                <h2 class="related-card-title">Bài viết liên quan</h2>
+
+                <div class="related-posts-list" th:if="${relatedPosts != null and !relatedPosts.empty}">
+                    <article class="related-item" th:each="rpost : ${relatedPosts}">
+                        <a th:href="@{|/blogs/${rpost.id}|}" class="related-thumb-link">
+                            <img th:if="${rpost.thumbnail != null}" th:src="${rpost.thumbnail}" th:alt="${rpost.title}" class="related-thumb-img">
+                            <div th:if="${rpost.thumbnail == null}" class="related-thumb-empty"></div>
+                        </a>
+                        <div class="related-meta-wrap">
+                            <h3 class="related-title">
+                                <a th:href="@{|/blogs/${rpost.id}|}" th:text="${rpost.title}">Cách chọn chuột không dây phù hợp với nhu cầu làm việc</a>
+                            </h3>
+                            <div class="related-date">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span th:text="${#temporals.format(rpost.updatedAt != null ? rpost.updatedAt : rpost.createdAt, 'dd/MM/yyyy')}">06/11/2026</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <p class="no-related-notice" th:if="${relatedPosts == null or relatedPosts.empty}">Chưa có bài viết liên quan.</p>
+            </div>
+        </aside>
+    </div>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>

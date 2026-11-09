@@ -1,39 +1,145 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Đặt hàng thành công')}"></head>
-<body>
+<body class="checkout-page-body">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page checkout-page-main" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <div class="steps">
-        <div class="step"><b>1</b>Thông tin nhận hàng</div>
-        <div class="step"><b>2</b>Kiểm tra đơn</div>
-        <div class="step on"><b>3</b>Hoàn tất</div>
+
+    <!-- Stepper 3 bước (Cả 3 bước đều xanh lá hoàn tất giống Ảnh 2) -->
+    <div class="checkout-stepper-wrap success-stepper">
+        <div class="stepper-item step-all-success">
+            <span class="step-circle">✓</span>
+            <span class="step-label">Thông tin nhận hàng</span>
+        </div>
+        <div class="stepper-line success-line"></div>
+        <div class="stepper-item step-all-success">
+            <span class="step-circle">✓</span>
+            <span class="step-label">Kiểm tra đơn</span>
+        </div>
+        <div class="stepper-line success-line"></div>
+        <div class="stepper-item step-all-success">
+            <span class="step-circle">✓</span>
+            <span class="step-label">Hoàn tất</span>
+        </div>
     </div>
-    <section class="card" th:if="${order != null}" style="max-width:760px; margin:0 auto;">
-        <h1>Đặt hàng thành công</h1>
-        <p class="muted" th:text="|Mã đơn #${order.id}|">Mã đơn</p>
-        <p>Trạng thái: <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span></p>
-        <p th:text="|${order.receiverName} · ${order.receiverMobile} · ${order.receiverAddress}|">Người nhận</p>
-        <div th:each="item : ${order.items}" class="summary-row">
-            <span th:text="${item.productName}">Sản phẩm</span>
-            <span><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></span>
+
+    <!-- Icon tích xanh to & Tiêu đề chúc mừng giữa trang -->
+    <div class="success-top-hero">
+        <div class="big-check-circle">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
         </div>
-        <p class="total-row"><span>Tổng thanh toán</span><strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
-        <div class="card" style="margin-top:12px;">
-            <h2>Hướng dẫn thanh toán</h2>
-            <p th:text="|Ngân hàng: ${bankName}|">Ngân hàng</p>
-            <p th:text="|Số tài khoản: ${accountNumber}|">Số tài khoản</p>
-            <p th:text="|Chủ tài khoản: ${accountName}|">Chủ tài khoản</p>
-            <p th:text="|Nội dung: ${transferContent}|">Nội dung</p>
+        <h1 class="success-main-title">Đặt hàng thành công!</h1>
+        <p class="success-sub-title">Cảm ơn bạn đã mua sắm tại NOVA SHOP.</p>
+    </div>
+
+    <!-- Khối thẻ thông tin chi tiết đơn hàng (Giống Ảnh 2) -->
+    <div class="success-card-wrapper" th:if="${order != null}">
+        <article class="success-order-card">
+            <!-- Header đơn hàng: Mã đơn + Badge trạng thái bên trái | Ngày đặt bên phải -->
+            <div class="order-head-bar">
+                <div class="oh-left">
+                    <span class="oh-code-lbl">Mã đơn hàng: <strong class="oh-code-val" th:text="${order.code != null ? order.code : '#' + order.id}">OD000125</strong></span>
+                    <span class="oh-status-badge">Đã gửi đơn</span>
+                </div>
+                <div class="oh-right">
+                    <span class="oh-date-lbl" th:text="|Ngày đặt: ${#temporals.format(order.createdAt, 'dd/MM/yyyy')}|">Ngày đặt: 09/11/2026</span>
+                </div>
+            </div>
+
+            <!-- 2 Cột thông tin Người nhận & Địa chỉ giao hàng -->
+            <div class="order-receiver-grid">
+                <div class="org-col">
+                    <div class="org-title-line">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Người nhận: <strong th:text="${order.receiverName}">Nguyễn Minh Anh</strong></span>
+                    </div>
+                    <div class="org-sub-line" th:text="${order.receiverEmail}">minhanh@example.com</div>
+                    <div class="org-sub-line" th:if="${order.receiverMobile != null}" th:text="${order.receiverMobile}">0901 234 567</div>
+                </div>
+                <div class="org-col">
+                    <div class="org-title-line">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span>Địa chỉ giao hàng:</span>
+                    </div>
+                    <div class="org-sub-line" th:text="${order.receiverAddress}">Khu đô thị Hòa Lạc, Hà Nội</div>
+                </div>
+            </div>
+
+            <!-- Bảng danh sách sản phẩm -->
+            <div class="order-items-table">
+                <div class="oit-head">
+                    <span class="oit-col-sp">Sản phẩm</span>
+                    <span class="oit-col-sl">Số lượng</span>
+                    <span class="oit-col-gia">Đơn giá</span>
+                    <span class="oit-col-tt">Thành tiền</span>
+                </div>
+                <div class="oit-body">
+                    <div class="oit-row" th:each="item : ${order.items}">
+                        <div class="oit-sp-cell">
+                            <div class="oit-thumb">
+                                <img th:if="${item.product != null and item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="" class="oit-thumb-img">
+                                <div th:if="${item.product == null or item.product.thumbnail == null}" class="oit-thumb-empty"></div>
+                            </div>
+                            <div class="oit-meta">
+                                <strong class="oit-name" th:text="${item.productName}">Bàn phím cơ Nova K68</strong>
+                                <span class="oit-code" th:text="${item.productCode != null ? item.productCode : (item.product != null ? item.product.code : 'KB001')}">KB001</span>
+                            </div>
+                        </div>
+                        <div class="oit-sl-cell" th:text="${item.quantity}">1</div>
+                        <div class="oit-gia-cell"><span th:replace="~{fragments/header :: vnd(${item.unitPrice})}">690.000 ₫</span></div>
+                        <div class="oit-tt-cell"><strong th:replace="~{fragments/header :: vnd(${item.subtotal})}">690.000 ₫</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phần tóm tắt tính tiền (căn phải) -->
+            <div class="order-calc-section">
+                <div class="order-calc-table">
+                    <div class="oct-row">
+                        <span class="oct-label">Tạm tính</span>
+                        <span class="oct-val"><span th:replace="~{fragments/header :: vnd(${order.totalAmount.subtract(order.shippingFee != null ? order.shippingFee : 0)})}">980.000 ₫</span></span>
+                    </div>
+                    <div class="oct-row">
+                        <span class="oct-label">Phí giao hàng</span>
+                        <span class="oct-val"><span th:replace="~{fragments/header :: vnd(${order.shippingFee != null ? order.shippingFee : 30000})}">30.000 ₫</span></span>
+                    </div>
+                    <div class="oct-divider"></div>
+                    <div class="oct-total-row">
+                        <span class="oct-total-lbl">Tổng thanh toán</span>
+                        <span class="oct-total-val"><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">1.010.000 ₫</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner nhắc nhở lưu mã đơn hàng (màu xanh lá nhạt) -->
+            <div class="order-notice-pill-bar">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>Vui lòng lưu mã đơn để liên hệ khi cần hỗ trợ.</span>
+            </div>
+        </article>
+
+        <!-- Nút Tiếp tục mua sắm ở giữa dưới card -->
+        <div class="success-actions-center">
+            <a th:href="@{/products}" class="btn-continue-shop-blue">Tiếp tục mua sắm</a>
         </div>
-        <a class="btn" th:href="@{/products}" style="margin-top:16px;">Tiếp tục mua sắm</a>
-    </section>
-    <section class="card" th:if="${order == null}">
-        <h1>Không tìm thấy đơn vừa đặt</h1>
-        <a class="btn" th:href="@{/}">Về trang chủ</a>
-    </section>
+    </div>
+
+    <!-- Fallback nếu không có đơn hàng -->
+    <div class="completion-empty-state" th:if="${order == null}">
+        <h2>Không tìm thấy đơn hàng vừa đặt</h2>
+        <p class="muted">Có thể phiên làm việc của bạn đã hết hạn hoặc bạn chưa hoàn tất đặt hàng.</p>
+        <a class="btn-continue-shop-blue" th:href="@{/}">Về trang chủ</a>
+    </div>
 </main>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 <script th:src="@{/js/ui.js}"></script>
