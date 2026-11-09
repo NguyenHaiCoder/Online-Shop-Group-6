@@ -60,9 +60,10 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @Query("""
         SELECT u.id
         FROM User u
+        LEFT JOIN Order o ON o.assignedSale.id = u.id
         WHERE u.role.value = 'SALE' AND u.status = com.swd392.onlineshop.enums.UserStatus.ACTIVE
         GROUP BY u.id
-        ORDER BY MAX(COALESCE((SELECT o.createdAt FROM Order o WHERE o.assignedSale.id = u.id), '1970-01-01')) ASC, u.id ASC
+        ORDER BY COALESCE(MAX(o.createdAt), '1970-01-01') ASC, u.id ASC
     """)
     List<Long> findRoundRobinSaleCandidates();
 }
