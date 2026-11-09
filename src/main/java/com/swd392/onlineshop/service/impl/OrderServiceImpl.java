@@ -334,6 +334,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getCustomerOrders(Long userId, int page) {
+        return getCustomerOrders(userId, page, null, null);
+    }
+
+    @Override
+    public Page<Order> getCustomerOrders(Long userId, int page, String status, String keyword) {
         Customer customer = customerService.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException("Tài khoản chưa có thông tin khách hàng."));
 
@@ -341,7 +346,17 @@ public class OrderServiceImpl implements OrderService {
         int defaultPageSize = (appProperties != null && appProperties.getPageSize() > 0) ? appProperties.getPageSize() : pageSize;
         Pageable pageable = PageRequest.of(pageIndex, defaultPageSize);
 
-        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId(), pageable);
+        OrderStatus orderStatus = null;
+        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
+            try {
+                orderStatus = OrderStatus.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+
+        return orderRepository.searchCustomerOrders(customer.getId(), orderStatus, kw, pageable);
     }
 
     @Override

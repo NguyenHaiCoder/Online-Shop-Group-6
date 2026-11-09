@@ -28,11 +28,15 @@ public class MyOrderController {
 
     @GetMapping
     public String myOrders(@RequestParam(value = "page", defaultValue = "1") int page,
+                           @RequestParam(value = "status", required = false) String status,
+                           @RequestParam(value = "keyword", required = false) String keyword,
                            Authentication authentication,
                            Model model) {
         Long userId = requireUserId(authentication);
-        Page<Order> orderPage = orderService.getCustomerOrders(userId, page);
+        Page<Order> orderPage = orderService.getCustomerOrders(userId, page, status, keyword);
         model.addAttribute("page", orderPage);
+        model.addAttribute("selectedStatus", (status == null || status.isBlank()) ? "ALL" : status.toUpperCase());
+        model.addAttribute("keyword", keyword != null ? keyword : "");
         return "customer/orders/my-orders";
     }
 

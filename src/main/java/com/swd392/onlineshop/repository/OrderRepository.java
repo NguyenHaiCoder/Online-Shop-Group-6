@@ -26,6 +26,25 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @EntityGraph(attributePaths = {"items", "items.product"})
     Page<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId, Pageable pageable);
 
+    @Query(value = """
+        SELECT DISTINCT o FROM Order o
+        LEFT JOIN FETCH o.items i
+        LEFT JOIN FETCH i.product p
+        WHERE o.customer.id = :customerId
+          AND (:status IS NULL OR o.status = :status)
+          AND (:keyword IS NULL OR LOWER(o.code) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        ORDER BY o.createdAt DESC
+    """, countQuery = """
+        SELECT COUNT(o) FROM Order o
+        WHERE o.customer.id = :customerId
+          AND (:status IS NULL OR o.status = :status)
+          AND (:keyword IS NULL OR LOWER(o.code) LIKE LOWER(CONCAT('%', :keyword, '%')))
+    """)
+    Page<Order> searchCustomerOrders(@Param("customerId") Long customerId,
+                                     @Param("status") OrderStatus status,
+                                     @Param("keyword") String keyword,
+                                     Pageable pageable);
+
     @EntityGraph(attributePaths = {"items", "items.product", "customer"})
     Optional<Order> findByIdAndCustomerId(Long id, Long customerId);
 

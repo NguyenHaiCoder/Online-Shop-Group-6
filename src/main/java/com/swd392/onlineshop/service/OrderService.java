@@ -37,6 +37,8 @@ public interface OrderService {
 
     Page<Order> getCustomerOrders(Long userId, int page);
 
+    Page<Order> getCustomerOrders(Long userId, int page, String status, String keyword);
+
     Order getCustomerOrderDetails(Long orderId, Long userId);
 
     void prepareUpdateOrder(Long orderId, Long userId, HttpSession session);
