@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Đăng ký')}"></head>
-<body th:with="authPage=${true}">
+<body class="auth-body" th:with="authPage=${true}">
 <div th:replace="~{fragments/header :: bar}"></div>
 <main class="auth-page" id="content">
     <!--/* Model: registerForm, registerErrors (Map field -> message) */-->

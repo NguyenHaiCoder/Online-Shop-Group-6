@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Cấu hình hệ thống')}"></head>
-<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<body class="staff-body admin-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
 <main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm cấu hình' : (${editing} ? 'Chỉnh sửa cấu hình' : 'Chi tiết cấu hình'))}"></header>
 <div th:replace="~{fragments/header :: messages}"></div><a th:href="@{/admin/settings}">← Quay lại danh sách</a>
 <th:block th:if="${!editing}"><div class="split"><p class="muted">Thông tin cấu hình hệ thống.</p><div class="row-actions"><a class="btn" th:href="@{|/admin/settings/${recordId}/edit|}">Chỉnh sửa</a><button class="btn-ghost" data-open="visibility-detail" th:text="${form.active} ? 'Ẩn cấu hình' : 'Hiện cấu hình'"></button></div></div>

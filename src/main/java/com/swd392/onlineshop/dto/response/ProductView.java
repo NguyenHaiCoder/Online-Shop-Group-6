@@ -31,18 +31,4 @@ public class ProductView {
     private Map<Long, String> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private SettingRow category;
-    private BigDecimal originalPrice;
-    private BigDecimal salePrice;
-    public static ProductView from(com.swd392.onlineshop.entity.Product p) {
-        Map<Long,String> images = new java.util.LinkedHashMap<>();
-        p.getImages().forEach(i -> images.put(i.getId(),i.getImageUrl()));
-        return ProductView.builder().id(p.getId()).code(p.getCode()).name(p.getName()).thumbnail(p.getThumbnail())
-            .categoryName(p.getCategory()==null?null:p.getCategory().getName())
-            .category(p.getCategory()==null?null:SettingRow.from(p.getCategory())).currentPrice(p.getOriginalPrice())
-            .originalPrice(p.getOriginalPrice()).stockQuantity(p.getStockQuantity()).visible(p.isVisible())
-            .briefInfo(p.getBriefInfo()).description(p.getDescription()).images(images)
-            .specifications(p.getSpecifications().stream().map(s -> s.getName()+": "+s.getValue()).toList())
-            .createdAt(p.getCreatedAt()).updatedAt(p.getUpdatedAt()).build();
-    }
 }

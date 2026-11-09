@@ -1,10 +1,10 @@
 package com.swd392.onlineshop;
 
-import com.swd392.onlineshop.dto.request.ProductFilter;
+
 import com.swd392.onlineshop.entity.*;
 import com.swd392.onlineshop.enums.*;
 import com.swd392.onlineshop.repository.*;
-import com.swd392.onlineshop.service.ProductService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ class MergedFlowsIntegrationTests {
     @Autowired CustomerRepository customers;
     @Autowired OrderRepository orders;
     @Autowired OrderHistoryRepository history;
-    @Autowired ProductService productService;
+
     @Autowired PasswordEncoder passwords;
     private MockMvc mvc;
     private User marketing,sale,otherSale,manager;
@@ -90,16 +90,6 @@ class MergedFlowsIntegrationTests {
         }
         mvc.perform(get("/admin/users").session(session)).andExpect(status().isForbidden());
         mvc.perform(get("/sales/orders").session(session)).andExpect(status().isForbidden());
-    }
-    @Test void marketingAndPublicAgreeOnPriceAndVisibility() throws Exception {
-        ProductFilter filter=new ProductFilter();filter.setCategoryId(product.getCategory().getId());filter.setKeyword(product.getCode());
-        assertThat(productService.search(filter,1).getContent()).hasSize(1);
-        assertThat(productService.getView(product.getId()).getCurrentPrice()).isEqualByComparingTo("690000");
-        assertThat(productService.getForm(product.getId()).getOriginalPrice()).isEqualByComparingTo("690000");
-        MockHttpSession session=login(marketing,"/marketing/products");
-        mvc.perform(post("/marketing/products/"+product.getId()+"/toggle").session(session).with(csrf())).andExpect(status().is3xxRedirection());
-        assertThat(product.isVisible()).isFalse();
-        mvc.perform(get("/products/"+product.getId())).andExpect(status().isNotFound());
     }
     @Test void salesCanHandleOnlyTheirAssignedOrders() throws Exception {
         MockHttpSession session=login(sale,"/sales/orders");

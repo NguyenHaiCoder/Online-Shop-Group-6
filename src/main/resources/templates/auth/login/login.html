@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/header :: head('Đăng nhập')}"></head>
-<body th:with="authPage=${true}">
+<body class="auth-body" th:with="authPage=${true}">
 <div th:replace="~{fragments/header :: bar}"></div>
 <main class="auth-split" id="content">
     <div class="auth-visual" aria-hidden="true"></div>

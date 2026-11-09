@@ -13,7 +13,4 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     @Override
     @EntityGraph(attributePaths = "author")
     Page<Post> findAll(Specification<Post> spec, Pageable pageable);
-    java.util.List<Post> findByVisibleTrueAndFeaturedTrueOrderByUpdatedAtDescIdDesc(Pageable pageable);
-    Page<Post> findByVisibleTrueOrderByUpdatedAtDescIdDesc(Pageable pageable);
-    java.util.Optional<Post> findByIdAndVisibleTrue(Long id);
 }

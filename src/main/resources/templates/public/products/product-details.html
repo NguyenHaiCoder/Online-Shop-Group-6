@@ -15,7 +15,7 @@
                 <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}" style="border-radius:16px; background:#f3f6fb;">
                 <div class="ph wide" th:if="${product.thumbnail == null}"></div>
                 <div class="thumbs">
-                    <img th:each="image : ${product.images.values()}" th:src="${image}" alt="">
+                    <img th:each="image : ${product.images}" th:src="${image.imageUrl}" alt="">
                 </div>
             </div>
             <div>

@@ -1,16 +1,74 @@
-<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head('Trang chủ')}"></head><body>
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Trang chủ')}"></head>
+<body>
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content"><div th:replace="~{fragments/header :: messages}"></div><div class="stack">
-<section class="hero" data-carousel aria-label="Ưu đãi nổi bật">
-<th:block th:if="${sliders == null || sliders.empty}"><div class="hero-copy"><h1>Góc làm việc mới.<br>Cảm hứng mới.</h1><p class="muted">Khám phá bộ sưu tập công nghệ và phụ kiện, đồng hành cùng bạn mỗi ngày.</p><a class="btn" th:href="@{/products}">Khám phá sản phẩm →</a></div></th:block>
-<th:block th:if="${sliders != null && !sliders.empty}">
-<div class="hero-panel" th:each="slider,iter : ${sliders}" th:attr="data-slide=${iter.index}" th:hidden="${iter.index > 0}">
-<div class="hero-slide"><img th:src="${slider.image}" alt="" data-image-fallback="/images/nova-workspace.png"></div>
-<div class="hero-copy"><h1 th:text="${slider.title}"></h1><p class="muted" th:if="${slider.notes != null}" th:text="${slider.notes}"></p><a class="btn" th:href="@{${slider.backlink}}" th:text="${slider.buttonLabel}"></a></div></div>
-<th:block th:if="${sliders.size() > 1}"><button type="button" class="hero-nav prev" data-slide-prev aria-label="Banner trước">‹</button><button type="button" class="hero-nav next" data-slide-next aria-label="Banner tiếp theo">›</button><div class="carousel-dots"><button type="button" th:each="slider,iter : ${sliders}" th:attr="data-slide-to=${iter.index},aria-label=|Xem banner ${iter.count}|" th:classappend="${iter.first} ? 'on'"></button></div></th:block>
-</th:block></section>
-<nav class="cat-row" aria-label="Danh mục sản phẩm" th:if="${!productCategories.empty}"><a class="cat" th:each="category : ${productCategories}" th:href="@{/products(categoryId=${category.id})}"><span class="cat-mark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="4" y="6" width="24" height="17" rx="3"/><path d="M11 27h10M16 23v4M9 12h14M9 17h9"/></svg></span><strong th:text="${category.name}"></strong><span class="muted">›</span></a></nav>
-<section><div class="section-head"><h2>Sản phẩm nổi bật</h2><a th:href="@{/products}">Xem tất cả sản phẩm →</a></div><div class="grid-3 home-products"><article class="pcard hcard" th:each="product : ${featuredProducts}"><a th:href="@{|/products/${product.id}|}"><img class="thumb" th:src="${product.thumbnail ?: '/images/image-unavailable.svg'}" th:alt="${product.name}" data-image-fallback></a><div class="body"><p class="sku" th:text="${product.code}"></p><a th:href="@{|/products/${product.id}|}"><h3 th:text="${product.name}"></h3></a><p class="price"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}"></span></p></div></article></div><p class="empty" th:if="${featuredProducts.empty}">Chưa có sản phẩm nổi bật.</p></section>
-<section><div class="section-head"><h2>Góc cảm hứng</h2><a th:href="@{/blogs}">Xem tất cả bài viết →</a></div><div class="home-posts"><article class="bcard hcard" th:each="post : ${hotPosts}"><a th:href="@{|/blogs/${post.id}|}"><img class="thumb" th:src="${post.thumbnail ?: '/images/image-unavailable.svg'}" th:alt="${post.title}" data-image-fallback></a><div class="body"><a th:href="@{|/blogs/${post.id}|}"><h3 th:text="${post.title}"></h3></a><p class="muted" th:text="${post.briefInfo}"></p><p class="meta" th:text="${#temporals.format(post.updatedAt,'dd/MM/yyyy')}"></p></div></article></div><p class="empty" th:if="${hotPosts.empty}">Chưa có bài viết nổi bật.</p></section>
-</div></main><div th:replace="~{fragments/footer :: footer}"></div><div th:replace="~{fragments/header :: modals('')}"></div><script th:src="@{/js/ui.js}"></script></body></html>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <div class="stack">
+        <section class="hero" th:if="${sliders == null || sliders.empty}">
+            <div class="hero-copy">
+                <h1>Góc làm việc mới.<br>Cảm hứng mới.</h1>
+                <p class="muted">Khám phá bộ sưu tập bàn phím, chuột và tai nghe Nova.</p>
+                <a class="btn" th:href="@{/products}">Khám phá sản phẩm →</a>
+                <div class="dots"><i class="on"></i><i></i><i></i></div>
+            </div>
+        </section>
+        <section class="hero" th:if="${sliders != null && !sliders.empty}">
+            <a class="hero-slide" th:each="slider, iter : ${sliders}" th:href="${slider.backlink != null ? slider.backlink : '/products'}" th:style="${iter.index > 0} ? 'display:none' : ''">
+                <img th:src="${slider.image}" th:alt="${slider.title}">
+            </a>
+            <div class="hero-copy">
+                <h1 th:text="${sliders[0].title}">Góc làm việc mới.</h1>
+                <a class="btn" th:href="@{/products}">Khám phá sản phẩm →</a>
+            </div>
+        </section>
+
+        <nav class="cat-row" th:if="${productCategories != null}">
+            <a class="cat" th:each="category : ${productCategories}" th:href="@{/products(categoryId=${category.id})}">
+                <span class="ph"></span>
+                <strong th:text="${category.name}">Bàn phím</strong>
+                <span class="muted">›</span>
+            </a>
+        </nav>
+
+        <section>
+            <div class="section-head"><h2>Sản phẩm nổi bật</h2><a th:href="@{/products}">Xem tất cả sản phẩm →</a></div>
+            <div class="grid-3">
+                <article class="pcard hcard" th:each="product : ${featuredProducts}">
+                    <a th:href="@{|/products/${product.id}|}">
+                        <img class="thumb" th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}">
+                        <div class="ph wide" th:if="${product.thumbnail == null}"></div>
+                    </a>
+                    <div class="body">
+                        <a th:href="@{|/products/${product.id}|}"><h3 th:text="${product.name}">Sản phẩm</h3></a>
+                        <p class="price"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">0</span></p>
+                    </div>
+                </article>
+            </div>
+            <p class="empty" th:if="${featuredProducts == null || featuredProducts.empty}">Chưa có sản phẩm nổi bật.</p>
+        </section>
+
+        <section>
+            <div class="section-head"><h2>Góc cảm hứng</h2><a th:href="@{/blogs}">Xem tất cả bài viết →</a></div>
+            <div class="grid-3" style="grid-template-columns: 1fr 1fr;">
+                <article class="bcard hcard" th:each="post : ${hotPosts}">
+                    <a th:href="@{|/blogs/${post.id}|}">
+                        <img class="thumb" th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}">
+                        <div class="ph wide" th:if="${post.thumbnail == null}"></div>
+                    </a>
+                    <div class="body">
+                        <a th:href="@{|/blogs/${post.id}|}"><h3 th:text="${post.title}">Bài viết</h3></a>
+                        <p class="muted" th:text="${post.briefInfo}"></p>
+                        <p class="meta" th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></p>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>

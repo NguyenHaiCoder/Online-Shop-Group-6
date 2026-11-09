@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Cấu hình hệ thống')}"></head>
-<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<body class="staff-body admin-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
 <main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top('Cấu hình hệ thống')}"></header>
 <div th:replace="~{fragments/header :: messages}"></div>
 <div class="split"><p class="muted">Quản lý các nội dung và thiết lập hiển thị trên website.</p><a class="btn" th:href="@{/admin/settings/new}">＋ Thêm cấu hình</a></div>

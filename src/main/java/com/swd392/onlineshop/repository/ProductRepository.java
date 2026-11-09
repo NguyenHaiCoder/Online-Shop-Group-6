@@ -21,6 +21,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     boolean existsByCodeIgnoreCase(String code);
 
     boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
-    List<Product> findByVisibleTrueAndFeaturedTrueOrderByUpdatedAtDescIdDesc(Pageable pageable);
-    java.util.Optional<Product> findByIdAndVisibleTrue(Long id);
 }

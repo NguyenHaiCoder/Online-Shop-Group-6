@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head('Người dùng')}"></head>
-<body class="staff-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+<body class="staff-body admin-body"><div class="staff-shell"><aside th:replace="~{fragments/staff-menu :: menu}"></aside>
 <main class="staff-content" id="content"><header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm người dùng' : (${editing} ? 'Chỉnh sửa người dùng' : 'Chi tiết người dùng'))}"></header>
 <div th:replace="~{fragments/header :: messages}"></div>
 <a th:href="@{/admin/users}">← Quay lại danh sách</a>

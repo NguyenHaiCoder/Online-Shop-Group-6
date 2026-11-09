@@ -19,10 +19,4 @@ public class PostRow {
     private String authorName;
     private LocalDateTime updatedAt;
     private boolean visible;
-    private String briefInfo;
-    public static PostRow from(com.swd392.onlineshop.entity.Post p) {
-        return PostRow.builder().id(p.getId()).code(p.getCode()).title(p.getTitle()).thumbnail(p.getThumbnail())
-            .briefInfo(p.getBriefInfo()).authorName(p.getAuthor()==null?null:p.getAuthor().getFullName())
-            .updatedAt(p.getUpdatedAt()).visible(p.isVisible()).build();
-    }
 }

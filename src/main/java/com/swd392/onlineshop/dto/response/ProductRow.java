@@ -20,9 +20,4 @@ public class ProductRow {
     private BigDecimal currentPrice;
     private int stockQuantity;
     private boolean visible;
-    public static ProductRow from(com.swd392.onlineshop.entity.Product p) {
-        return ProductRow.builder().id(p.getId()).code(p.getCode()).name(p.getName()).thumbnail(p.getThumbnail())
-            .categoryName(p.getCategory()==null?null:p.getCategory().getName()).currentPrice(p.getOriginalPrice())
-            .stockQuantity(p.getStockQuantity()).visible(p.isVisible()).build();
-    }
 }

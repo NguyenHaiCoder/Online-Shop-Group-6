@@ -44,7 +44,7 @@ Admin nhập và xác nhận mật khẩu khi tạo tài khoản; DB chỉ lưu 
 
 Admin bám ADU01–ADU05, ADS01–ADS05 trong `NOVA_SHOP_UI`: danh sách/lọc/phân trang, thêm, chi tiết, sửa, hộp xác nhận ẩn/hiện. Login dùng template AU01 hiện có. Theo `NOVA_SHOP_UI/DOC_TRUOC.md`, phạm vi Admin gồm người dùng và cấu hình, không có Dashboard hoặc Chatbot AI.
 
-Chạy kiểm tra: `.\mvnw.cmd test` trên JDK 21. Test profile dùng H2 riêng, không kết nối hoặc thay đổi SQL Server thật. Máy thực hiện hiện chỉ có JDK 17, đã kiểm tra tương thích bằng `.\mvnw.cmd "-Djava.version=17" test`; không đổi yêu cầu JDK 21 của project. Đã chạy thành công cả 4 migration trên SQL Server Express local và kiểm tra đăng nhập tài khoản mẫu.
+Chạy kiểm tra: `.\mvnw.cmd test` trên JDK 21. Test profile dùng H2 riêng, không kết nối hoặc thay đổi SQL Server thật. Phạm vi bản merge hiện tại chỉ gồm Admin và xác thực; xem MERGE_VALIDATION.md. Máy thực hiện hiện chỉ có JDK 17, đã kiểm tra tương thích bằng `.\mvnw.cmd "-Djava.version=17" test`; không đổi yêu cầu JDK 21 của project. Đã chạy thành công cả 4 migration trên SQL Server Express local và kiểm tra đăng nhập tài khoản mẫu.
 ## Cấu hình local hiện tại
 
 Database: OnlineShopDB trên localhost:1433; tài khoản riêng của project nằm trong .env qua DB_USERNAME/DB_PASSWORD. Không cần đổi mật khẩu sa.
