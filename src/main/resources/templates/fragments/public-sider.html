@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* mode = posts | products. Can postCategories / productCategories va latestPosts / latestProducts. */-->
+<aside th:fragment="sider(mode)" class="sider"
+       th:with="posts=${mode == 'posts'},
+                cats=${posts ? (postCategories != null ? postCategories : T(java.util.Collections).emptyList()) : (productCategories != null ? productCategories : T(java.util.Collections).emptyList())},
+                latest=${posts ? (latestPosts != null ? latestPosts : T(java.util.Collections).emptyList()) : (latestProducts != null ? latestProducts : T(java.util.Collections).emptyList())}">
+    <form th:action="${posts} ? @{/blogs} : @{/products}" method="get">
+        <label class="field">
+            <span class="muted" th:text="${posts} ? 'Tìm bài viết' : 'Tìm sản phẩm'">Tìm</span>
+            <input type="search" name="keyword" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+        </label>
+    </form>
+    <h2>Danh mục</h2>
+    <ul>
+        <li><a th:href="${posts} ? @{/blogs} : @{/products}">Tất cả</a></li>
+        <li th:each="c : ${cats}">
+            <a th:href="${posts} ? @{/blogs(categoryId=${c.id})} : @{/products(categoryId=${c.id})}" th:text="${c.name}">Danh mục</a>
+        </li>
+    </ul>
+    <h2 th:text="${posts} ? 'Bài mới' : 'Sản phẩm mới'">Mới nhất</h2>
+    <ul>
+        <li th:each="item : ${latest}">
+            <a th:if="${posts}" th:href="@{|/blogs/${item.id}|}" th:text="${item.title}">Bài viết</a>
+            <a th:unless="${posts}" th:href="@{|/products/${item.id}|}" th:text="${item.name}">Sản phẩm</a>
+        </li>
+    </ul>
+    <h2>Liên hệ</h2>
+    <p class="muted" th:text="${shopHotline}">Hotline</p>
+    <p class="muted" th:text="${shopEmail}">Email</p>
+    <p class="muted" th:text="${shopAddress}">Địa chỉ</p>
+</aside>
+</body>
+</html>

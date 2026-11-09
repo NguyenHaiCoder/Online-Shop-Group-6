@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Có lỗi')}">
+    <title>Có lỗi</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="auth-page" id="content">
+    <section class="auth-card">
+        <p class="eyebrow" th:text="${status} ?: 'Lỗi'">Lỗi</p>
+        <h1 th:text="${error} ?: 'Không thực hiện được'">Không thực hiện được</h1>
+        <p th:text="${message} ?: ${errorMessage} ?: 'Đã có lỗi xảy ra. Vui lòng thử lại.'">Đã có lỗi xảy ra.</p>
+        <p th:if="${productName}" th:text="|Sản phẩm: ${productName}|"></p>
+        <p><a class="btn" th:href="@{/}">Về trang chủ</a></p>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,12 +1,86 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>order-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Chi tiết đơn hàng')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Chi tiết đơn hàng')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <article class="card stack">
+            <p class="eyebrow"><a th:href="@{/sales/orders}">Đơn hàng</a></p>
+            <h2 th:text="|Đơn #${order.id}|">Đơn</h2>
+            <p>
+                <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span>
+                · <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+            </p>
+            <p>Khách: <span th:text="${order.customer != null ? order.customer.fullName : ''}"></span>
+                · <span th:text="${order.customer != null ? order.customer.email : ''}"></span>
+                · <span th:text="${order.customer != null ? order.customer.mobile : ''}"></span></p>
+            <p>Sale phụ trách: <span th:text="${order.assignedSale != null ? order.assignedSale.fullName : 'Chưa phân công'}"></span></p>
+            <h3>Người nhận</h3>
+            <p th:text="${order.receiverName}"></p>
+            <p><span th:replace="~{fragments/header :: gender(${order.receiverGender})}"></span>
+                · <span th:text="${order.receiverMobile}"></span>
+                · <span th:text="${order.receiverEmail}"></span></p>
+            <p th:text="${order.receiverAddress}"></p>
+            <p th:if="${order.note != null}" th:text="|Ghi chú khách: ${order.note}|"></p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
+                    <tbody>
+                    <tr th:each="item : ${order.items}">
+                        <td class="wrap">
+                            <img class="thumb-sm" th:if="${item.product != null && item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="">
+                            <span th:text="${item.productName}"></span>
+                        </td>
+                        <td th:text="${item.product != null && item.product.category != null ? item.product.category.name : ''}"></td>
+                        <td><span th:replace="~{fragments/header :: vnd(${item.unitPrice})}">0</span></td>
+                        <td th:text="${item.quantity}">1</td>
+                        <td><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>Tổng tiền: <strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
+        </article>
 
+        <form class="card form-grid" th:action="@{|/sales/orders/${order.id}|}" method="post"
+              th:if="${order.status.name() != 'SUCCESS' && order.status.name() != 'CANCELLED'}">
+            <h2>Cập nhật đơn</h2>
+            <label class="field">Trạng thái
+                <select name="status">
+                    <option th:value="${order.status}" selected="selected" th:text="${order.status.name()}">Hiện tại</option>
+                    <option th:if="${order.status.name() == 'SUBMITTED'}" value="CONFIRMED">Đã xác nhận</option>
+                    <option th:if="${order.status.name() == 'CONFIRMED'}" value="SHIPPING">Đang giao</option>
+                    <option th:if="${order.status.name() == 'SHIPPING'}" value="SUCCESS">Hoàn tất</option>
+                    <option value="CANCELLED">Đã hủy</option>
+                </select>
+            </label>
+            <label class="field">Ghi chú nội bộ
+                <textarea name="saleNote" maxlength="500" rows="3" th:text="${order.saleNote}"></textarea>
+            </label>
+            <button type="submit">Lưu cập nhật</button>
+        </form>
+        <section class="card" th:if="${order.status.name() == 'SUCCESS' || order.status.name() == 'CANCELLED'}">
+            <h2>Ghi chú nội bộ</h2>
+            <p th:text="${order.saleNote != null ? order.saleNote : 'Không có ghi chú.'}"></p>
+        </section>
+
+        <form class="card form-grid" sec:authorize="hasRole('SALE_MANAGER')" th:action="@{|/sales/orders/${order.id}/assign|}" method="post">
+            <h2>Giao cho Sale</h2>
+            <label class="field">Sale
+                <select name="saleId" required>
+                    <option value="">Chọn</option>
+                    <option th:each="sale : ${sales != null ? sales : T(java.util.Collections).emptyList()}" th:value="${sale.id}" th:text="${sale.fullName}" th:selected="${order.assignedSale != null && order.assignedSale.id == sale.id}"></option>
+                </select>
+            </label>
+            <button type="submit">Giao đơn</button>
+        </form>
+        <p><a class="btn btn-ghost" th:href="@{/sales/orders}">Quay lại danh sách</a></p>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

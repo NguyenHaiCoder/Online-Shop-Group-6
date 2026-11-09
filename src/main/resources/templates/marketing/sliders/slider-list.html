@@ -1,12 +1,51 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>slider-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Slider')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Slider')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <div class="split">
+            <form class="filters" method="get" th:action="@{/marketing/sliders}">
+                <input type="search" name="keyword" placeholder="Tiêu đề hoặc liên kết" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+                <select name="visible">
+                    <option value="">Mọi trạng thái</option>
+                    <option value="true" th:selected="${param.visible != null && param.visible[0] == 'true'}">Hiển thị</option>
+                    <option value="false" th:selected="${param.visible != null && param.visible[0] == 'false'}">Ẩn</option>
+                </select>
+                <button type="submit">Lọc</button>
+            </form>
+            <a class="btn" th:href="@{/marketing/sliders/new}">Thêm slider</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Mã</th><th>Ảnh</th><th>Tiêu đề</th><th>Liên kết</th><th>Trạng thái</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="6" class="empty">Chưa có slider.</td></tr>
+                <tr th:if="${page != null}" th:each="row : ${page.content}">
+                    <td th:text="${row.id}"></td>
+                    <td><img class="thumb-sm" th:src="${row.image}" alt=""></td>
+                    <td class="wrap"><a th:href="@{|/marketing/sliders/${row.id}|}" th:text="${row.title}">Slider</a></td>
+                    <td th:text="${row.backlink}"></td>
+                    <td><span th:replace="~{fragments/header :: visibility(${row.visible})}"></span></td>
+                    <td class="row-actions">
+                        <a th:href="@{|/marketing/sliders/${row.id}|}">Sửa</a>
+                        <form class="inline" th:action="@{|/marketing/sliders/${row.id}/toggle|}" method="post">
+                            <button class="btn-ghost" type="submit" th:text="${row.visible} ? 'Ẩn' : 'Hiện'">Ẩn</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

@@ -1,12 +1,64 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>customer-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Khách hàng')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm khách hàng' : 'Chi tiết khách hàng')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="card form-grid" th:object="${form}" method="post"
+              th:action="${creating} ? @{/marketing/customers} : @{|${#request.requestURI}|}">
+            <p th:if="${customer != null}">Trạng thái: <span th:replace="~{fragments/header :: customerStatus(${customer.status})}"></span></p>
+            <label class="field">Họ tên
+                <input th:field="*{fullName}" required minlength="2" maxlength="100">
+                <small class="field-error" th:errors="*{fullName}"></small>
+            </label>
+            <label class="field">Giới tính
+                <select th:field="*{gender}">
+                    <option value="">Chọn</option>
+                    <option th:each="g : ${T(com.swd392.onlineshop.enums.Gender).values()}" th:value="${g}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
+                </select>
+            </label>
+            <label class="field">Email
+                <input type="email" th:field="*{email}" required maxlength="100" th:readonly="${customer != null && customer.user != null}">
+                <small class="hint" th:if="${customer != null && customer.user != null}">Email đã gắn với tài khoản, không đổi được.</small>
+                <small class="field-error" th:errors="*{email}"></small>
+            </label>
+            <label class="field">Số điện thoại
+                <input th:field="*{mobile}" maxlength="15">
+                <small class="field-error" th:errors="*{mobile}"></small>
+            </label>
+            <label class="field">Địa chỉ
+                <input th:field="*{address}" maxlength="255">
+            </label>
+            <div class="form-actions">
+                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
+                <a class="btn btn-ghost" th:href="@{/marketing/customers}">Quay lại</a>
+            </div>
+        </form>
+        <section class="card" th:if="${customer != null}">
+            <h2>Lịch sử liên hệ</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Email</th><th>Họ tên</th><th>Giới tính</th><th>Điện thoại</th><th>Địa chỉ</th><th>Người sửa</th><th>Ngày</th></tr></thead>
+                    <tbody>
+                    <tr th:each="history : ${customer.histories}">
+                        <td th:text="${history.email}"></td>
+                        <td th:text="${history.fullName}"></td>
+                        <td><span th:replace="~{fragments/header :: gender(${history.gender})}"></span></td>
+                        <td th:text="${history.mobile}"></td>
+                        <td class="wrap" th:text="${history.address}"></td>
+                        <td th:text="${history.updatedBy != null ? history.updatedBy.fullName : 'Hệ thống'}"></td>
+                        <td th:text="${#temporals.format(history.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

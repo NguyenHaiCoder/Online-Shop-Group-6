@@ -1,12 +1,70 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>post-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Bài viết')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Bài viết')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <div class="split">
+            <form class="filters" method="get" th:action="@{/marketing/posts}">
+                <input type="search" name="keyword" placeholder="Tiêu đề" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+                <select name="categoryId">
+                    <option value="">Mọi danh mục</option>
+                    <option th:each="c : ${categories != null ? categories : T(java.util.Collections).emptyList()}" th:value="${c.id}" th:text="${c.name}" th:selected="${param.categoryId != null && param.categoryId[0] == '' + c.id}"></option>
+                </select>
+                <select name="authorId">
+                    <option value="">Mọi tác giả</option>
+                    <option th:each="author : ${authors != null ? authors : T(java.util.Collections).emptyList()}" th:value="${author.id}" th:text="${author.fullName}" th:selected="${param.authorId != null && param.authorId[0] == '' + author.id}"></option>
+                </select>
+                <select name="visible">
+                    <option value="">Mọi trạng thái</option>
+                    <option value="true" th:selected="${param.visible != null && param.visible[0] == 'true'}">Hiển thị</option>
+                    <option value="false" th:selected="${param.visible != null && param.visible[0] == 'false'}">Ẩn</option>
+                </select>
+                <button type="submit">Lọc</button>
+            </form>
+            <a class="btn" th:href="@{/marketing/posts/new}">Thêm bài viết</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th><a th:replace="~{fragments/pagination :: sort('id', 'Mã')}"></a></th>
+                    <th>Ảnh</th>
+                    <th><a th:replace="~{fragments/pagination :: sort('title', 'Tiêu đề')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('category', 'Danh mục')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('author', 'Tác giả')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('featured', 'Nổi bật')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('visible', 'Trạng thái')}"></a></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="8" class="empty">Chưa có bài viết.</td></tr>
+                <tr th:if="${page != null}" th:each="row : ${page.content}">
+                    <td th:text="${row.id}"></td>
+                    <td><img class="thumb-sm" th:if="${row.thumbnail != null}" th:src="${row.thumbnail}" alt=""></td>
+                    <td class="wrap"><a th:href="@{|/marketing/posts/${row.id}|}" th:text="${row.title}">Tiêu đề</a></td>
+                    <td th:text="${row.category != null ? row.category.name : ''}"></td>
+                    <td th:text="${row.author != null ? row.author.fullName : ''}"></td>
+                    <td th:text="${row.featured} ? 'Có' : 'Không'">Không</td>
+                    <td><span th:replace="~{fragments/header :: visibility(${row.visible})}"></span></td>
+                    <td class="row-actions">
+                        <a th:href="@{|/marketing/posts/${row.id}|}">Sửa</a>
+                        <form class="inline" th:action="@{|/marketing/posts/${row.id}/toggle|}" method="post">
+                            <button class="btn-ghost" type="submit" th:text="${row.visible} ? 'Ẩn' : 'Hiện'">Ẩn</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

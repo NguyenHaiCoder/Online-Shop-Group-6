@@ -1,12 +1,66 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cart-contact</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Thanh toán')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <h1>Thanh toán</h1>
+    <div class="steps">
+        <div class="step on"><b>1</b>Thông tin nhận hàng</div>
+        <div class="step"><b>2</b>Kiểm tra đơn</div>
+        <div class="step"><b>3</b>Hoàn tất</div>
+    </div>
+    <div class="checkout">
+        <form class="card" th:action="@{/cart/submit}" th:object="${form}" method="post">
+            <div class="section-head">
+                <h2>Thông tin người nhận</h2>
+                <p sec:authorize="isAnonymous()">Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a></p>
+            </div>
+            <label class="field">Họ tên người nhận <span class="req">*</span>
+                <input th:field="*{fullName}" required maxlength="100" placeholder="Nguyễn Minh Anh">
+                <small class="field-error" th:errors="*{fullName}"></small>
+            </label>
+            <label class="field">Điện thoại <span class="req">*</span>
+                <input th:field="*{mobile}" required pattern="0[0-9]{9}" maxlength="15" placeholder="0901234567">
+                <small class="field-error" th:errors="*{mobile}"></small>
+            </label>
+            <label class="field">Email <span class="req">*</span>
+                <input type="email" th:field="*{email}" required maxlength="100">
+                <small class="field-error" th:errors="*{email}"></small>
+            </label>
+            <label class="field">Địa chỉ giao hàng <span class="req">*</span>
+                <input th:field="*{address}" required maxlength="255">
+                <small class="field-error" th:errors="*{address}"></small>
+            </label>
+            <label class="field">Giới tính <span class="req">*</span>
+                <select th:field="*{gender}" required>
+                    <option value="">Chọn</option>
+                    <option th:each="g : ${T(com.swd392.onlineshop.enums.Gender).values()}" th:value="${g}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
+                </select>
+            </label>
+            <label class="field">Ghi chú (không bắt buộc)
+                <textarea th:field="*{note}" maxlength="500" rows="3" placeholder="Nhập ghi chú cho đơn hàng"></textarea>
+            </label>
+            <div class="form-actions">
+                <a class="btn btn-ghost" th:href="@{/cart}">← Quay lại giỏ hàng</a>
+                <button type="submit">Tiếp tục →</button>
+            </div>
+        </form>
+        <aside class="card" th:if="${lines != null}">
+            <h2 th:text="|Đơn hàng của bạn (${lines.size()} sản phẩm)|">Đơn hàng của bạn</h2>
+            <div th:each="line : ${lines}" class="summary-row">
+                <span><img class="thumb-sm" th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt=""> <span th:text="${line.name}">SP</span><br><small class="muted" th:text="|Số lượng: ${line.quantity}|"></small></span>
+                <span th:replace="~{fragments/header :: vnd(${line.lineTotal})}">0</span>
+            </div>
+            <p class="summary-row"><span>Tạm tính</span><span th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</span></p>
+            <p class="summary-row"><span>Phí vận chuyển</span><span class="muted">Tính khi đặt hàng</span></p>
+            <p class="total-row"><span>Tổng thanh toán</span><strong th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</strong></p>
+        </aside>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

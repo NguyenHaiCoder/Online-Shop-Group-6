@@ -56,12 +56,28 @@ public class Feedback extends BaseEntity {
     @Column(length = 15)
     private String mobile;
 
-    /** 1..5 sao */
-    @Column(nullable = false)
-    private int rating;
+    /** Ma phan hoi, vi du PH0001. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
+    /** Chu de tren form gui phan hoi. */
+    @Column(nullable = false, length = 255)
+    private String subject;
+
+    /** Nguon, mac dinh Website. */
+    @Column(nullable = false, length = 50)
+    private String source = "Website";
+
+    /** Sao, man hinh gui phan hoi khong bat buoc. */
+    private Integer rating;
 
     @Column(nullable = false, length = 2000)
     private String content;
+
+    /** Nguoi marketing sua lan cuoi. null = chua ai sua. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
 
     /** Status: Show/Hide */
     @Column(nullable = false)

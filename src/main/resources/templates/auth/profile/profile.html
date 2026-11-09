@@ -1,12 +1,47 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>profile</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Hồ sơ')}"></head>
+<body th:with="authPage=${true}">
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="auth-page" id="content">
+    <!--/* Model: profileForm, profileErrors. Email chi hien, khong gui len de sua. */-->
+    <form th:fragment="modal" class="auth-card" th:action="@{/profile}" method="post" enctype="multipart/form-data">
+        <button type="button" class="modal-close" data-close aria-label="Đóng">×</button>
+        <h1>Hồ sơ</h1>
+        <img class="avatar-lg" th:if="${profileForm != null && profileForm.avatar != null}" th:src="${profileForm.avatar}" alt="">
+        <div class="form-grid">
+            <label class="field">Họ tên
+                <input name="fullName" required minlength="2" maxlength="100" th:value="${profileForm != null ? profileForm.fullName : ''}">
+                <small class="field-error" th:if="${profileErrors != null && profileErrors['fullName'] != null}" th:text="${profileErrors['fullName']}"></small>
+            </label>
+            <label class="field">Email
+                <input type="email" th:value="${profileForm != null ? profileForm.email : ''}" readonly>
+            </label>
+            <label class="field">Giới tính
+                <select name="gender">
+                    <option value="">Chọn</option>
+                    <option value="MALE" th:selected="${profileForm != null && profileForm.gender != null && profileForm.gender.name() == 'MALE'}">Nam</option>
+                    <option value="FEMALE" th:selected="${profileForm != null && profileForm.gender != null && profileForm.gender.name() == 'FEMALE'}">Nữ</option>
+                    <option value="OTHER" th:selected="${profileForm != null && profileForm.gender != null && profileForm.gender.name() == 'OTHER'}">Khác</option>
+                </select>
+            </label>
+            <label class="field">Số điện thoại
+                <input name="mobile" maxlength="15" th:value="${profileForm != null ? profileForm.mobile : ''}">
+                <small class="field-error" th:if="${profileErrors != null && profileErrors['mobile'] != null}" th:text="${profileErrors['mobile']}"></small>
+            </label>
+            <label class="field">Địa chỉ
+                <input name="address" maxlength="255" th:value="${profileForm != null ? profileForm.address : ''}">
+                <small class="field-error" th:if="${profileErrors != null && profileErrors['address'] != null}" th:text="${profileErrors['address']}"></small>
+            </label>
+            <label class="field">Ảnh đại diện
+                <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp">
+            </label>
+            <button type="submit">Lưu hồ sơ</button>
+        </div>
+    </form>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('profile')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

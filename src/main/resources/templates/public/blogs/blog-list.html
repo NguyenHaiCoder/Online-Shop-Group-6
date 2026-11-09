@@ -1,12 +1,31 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>blog-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head('Blog')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <p class="crumbs"><a th:href="@{/}">Trang chủ</a> / <span>Blog</span></p>
+    <h1>Góc cảm hứng</h1>
+    <p class="muted">Khám phá gợi ý chọn phụ kiện và cách sắp xếp góc làm việc.</p>
+    <div class="grid-3" style="margin-top:18px;">
+        <article class="bcard" th:if="${page != null}" th:each="post : ${page.content}">
+            <a th:href="@{|/blogs/${post.id}|}">
+                <img class="thumb" th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}">
+                <div class="ph wide" th:if="${post.thumbnail == null}"></div>
+            </a>
+            <div class="body">
+                <h2 th:text="${post.title}">Tiêu đề</h2>
+                <p class="muted" th:text="${post.briefInfo}"></p>
+                <p class="foot"><span th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></span><a class="link" th:href="@{|/blogs/${post.id}|}">Đọc bài viết →</a></p>
+            </div>
+        </article>
+    </div>
+    <p class="empty" th:if="${page == null || page.totalElements == 0}">Không có bài viết.</p>
+    <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

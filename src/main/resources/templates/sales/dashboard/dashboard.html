@@ -1,12 +1,50 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Tổng quan bán hàng')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Tổng quan')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="filters" method="get" th:action="@{/sales/dashboard}">
+            <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
+            <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
+            <select name="saleId" sec:authorize="hasRole('SALE_MANAGER')">
+                <option value="">Tất cả Sale</option>
+                <option th:each="sale : ${sales != null ? sales : T(java.util.Collections).emptyList()}" th:value="${sale.id}" th:text="${sale.fullName}" th:selected="${param.saleId != null && param.saleId[0] == '' + sale.id}"></option>
+            </select>
+            <select name="status">
+                <option value="">Mọi trạng thái</option>
+                <option th:each="st : ${T(com.swd392.onlineshop.enums.OrderStatus).values()}" th:value="${st}" th:text="${st.name()}" th:selected="${param.status != null && param.status[0] == st.name()}"></option>
+            </select>
+            <button type="submit">Xem</button>
+        </form>
+        <div class="stat-row">
+            <article class="stat"><span class="muted">Số đơn</span><strong th:text="${orderCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Đơn hoàn tất</span><strong th:text="${successCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Doanh thu</span><strong><span th:replace="~{fragments/header :: vnd(${revenue})}">0</span></strong></article>
+        </div>
+        <section class="card">
+            <h2>Theo ngày</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Ngày</th><th>Số đơn</th><th>Đơn hoàn tất</th><th>Doanh thu</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${dailyOrders == null || dailyOrders.empty}"><td colspan="4" class="empty">Không có dữ liệu trong khoảng này.</td></tr>
+                    <tr th:each="point : ${dailyOrders}">
+                        <td th:text="${#temporals.format(point.date, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td th:text="${point.total}">0</td>
+                        <td th:text="${point.success}">0</td>
+                        <td><span th:replace="~{fragments/header :: vnd(${point.revenue})}">0</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

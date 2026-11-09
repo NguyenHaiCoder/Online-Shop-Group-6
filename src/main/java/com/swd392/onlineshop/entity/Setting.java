@@ -23,19 +23,30 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "settings",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"type", "value"}))
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"type", "value"}),
+                @UniqueConstraint(columnNames = {"type", "code"})
+        })
 public class Setting extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private SettingType type;
 
+    /** Nhom tren man cau hinh, vi du Noi dung, Lien he. */
+    @Column(length = 100)
+    private String groupName;
+
     /** Ten hien thi */
     @Column(nullable = false, length = 100)
     private String name;
 
-    /** Ma dung trong code (vd: ADMIN, MARKETING, SALE...) */
+    /** Ma cau hinh, vi du HOTLINE, SHIPPING_POLICY. */
     @Column(nullable = false, length = 100)
+    private String code;
+
+    /** Gia tri tren form cau hinh. Danh sach chi hien rut gon. */
+    @Column(nullable = false, length = 1000)
     private String value;
 
     private Integer displayOrder;

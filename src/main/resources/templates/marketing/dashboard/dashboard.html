@@ -1,12 +1,41 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Tổng quan Marketing')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Tổng quan')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="filters" method="get" th:action="@{/marketing/dashboard}">
+            <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
+            <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
+            <button type="submit">Xem</button>
+        </form>
+        <div class="stat-row">
+            <article class="stat"><span class="muted">Bài viết mới</span><strong th:text="${postCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Sản phẩm mới</span><strong th:text="${productCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Contact mới</span><strong th:text="${newCustomerCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Phản hồi mới</span><strong th:text="${feedbackCount} ?: 0">0</strong></article>
+        </div>
+        <section class="card">
+            <h2>Contact mới theo ngày</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Ngày</th><th>Số contact</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${dailyCustomers == null || dailyCustomers.empty}"><td colspan="2" class="empty">Không có dữ liệu trong khoảng này.</td></tr>
+                    <tr th:each="point : ${dailyCustomers}">
+                        <td th:text="${#temporals.format(point.date, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td th:text="${point.count}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

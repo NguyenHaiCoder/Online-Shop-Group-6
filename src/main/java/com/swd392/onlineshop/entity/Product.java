@@ -33,6 +33,10 @@ import java.util.List;
 @Table(name = "products")
 public class Product extends BaseEntity {
 
+    /** Ma hien tren man hinh, vi du KB001. Duy nhat. */
+    @Column(nullable = false, unique = true, length = 50)
+    private String code;
+
     @Column(nullable = false, length = 255)
     private String name;
 
@@ -73,6 +77,11 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
+
+    /** Tung dong thong so: Kieu ket noi / USB-C. */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<ProductSpecification> specifications = new ArrayList<>();
 
     /** Gia ban thuc te: salePrice neu co, nguoc lai originalPrice */
     public BigDecimal getCurrentPrice() {

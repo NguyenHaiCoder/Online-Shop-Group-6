@@ -45,6 +45,10 @@ public class Order extends BaseEntity {
      * Guest -> Customer theo email nguoi nhan.
      * My Orders = cac don co customer.user = user dang login.
      */
+    /** Ma hien thi, vi du OD000125. Duy nhat. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
@@ -70,8 +74,16 @@ public class Order extends BaseEntity {
     private String note;
 
     // ===== Order data =====
+    /** Phi van chuyen tai thoi diem dat. Tam tinh = tong dong hang. Tong = tam tinh + phi. */
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal shippingFee = BigDecimal.ZERO;
+
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    /** Man hinh chi co COD */
+    @Column(nullable = false, length = 30)
+    private String paymentMethod = "COD";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

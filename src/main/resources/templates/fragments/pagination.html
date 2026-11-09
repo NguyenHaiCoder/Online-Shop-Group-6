@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* page la org.springframework.data.domain.Page, tham so URL page bat dau tu 1. */-->
+<nav th:fragment="pager(page)" class="pager" th:if="${page != null}"
+     th:with="raw=${#request.queryString == null ? '' : #request.queryString},
+              q=${raw.replaceAll('(^|&)page=\\d+', '').replaceAll('^&+', '').replaceAll('&+$', '').replaceAll('&&+', '&')},
+              sep=${#strings.isEmpty(q) ? '' : '&'}">
+    <p class="pager-info muted"
+       th:text="|${page.totalElements == 0 ? 0 : page.number * page.size + 1}–${page.number * page.size + page.numberOfElements} / ${page.totalElements}|"></p>
+    <div class="pager-links" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="|${#request.requestURI}?${q}${sep}page=${page.number}|">Trước</a>
+        <th:block th:each="i : ${#numbers.sequence(1, page.totalPages)}">
+            <span class="current" th:if="${i == page.number + 1}" th:text="${i}">1</span>
+            <a th:if="${i != page.number + 1}" th:href="|${#request.requestURI}?${q}${sep}page=${i}|" th:text="${i}">2</a>
+        </th:block>
+        <a th:if="${page.hasNext()}" th:href="|${#request.requestURI}?${q}${sep}page=${page.number + 2}|">Sau</a>
+    </div>
+</nav>
+
+<a th:fragment="sort(field, label)"
+   th:with="raw=${#request.queryString == null ? '' : #request.queryString},
+            q=${raw.replaceAll('(^|&)page=\\d+', '').replaceAll('(^|&)sort=[^&]*', '').replaceAll('(^|&)dir=[^&]*', '').replaceAll('^&+', '').replaceAll('&+$', '').replaceAll('&&+', '&')},
+            sep=${#strings.isEmpty(q) ? '' : '&'},
+            next=${param.sort != null && param.sort[0] == field && param.dir != null && param.dir[0] == 'asc' ? 'desc' : 'asc'}"
+   th:href="|${#request.requestURI}?${q}${sep}sort=${field}&dir=${next}&page=1|"
+   th:text="${label}"
+   th:classappend="${param.sort != null && param.sort[0] == field} ? 'is-sorted'">Cột</a>
+</body>
+</html>

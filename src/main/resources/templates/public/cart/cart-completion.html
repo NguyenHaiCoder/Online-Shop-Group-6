@@ -1,12 +1,41 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cart-completion</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head('Đặt hàng thành công')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <div class="steps">
+        <div class="step"><b>1</b>Thông tin nhận hàng</div>
+        <div class="step"><b>2</b>Kiểm tra đơn</div>
+        <div class="step on"><b>3</b>Hoàn tất</div>
+    </div>
+    <section class="card" th:if="${order != null}" style="max-width:760px; margin:0 auto;">
+        <h1>Đặt hàng thành công</h1>
+        <p class="muted" th:text="|Mã đơn #${order.id}|">Mã đơn</p>
+        <p>Trạng thái: <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span></p>
+        <p th:text="|${order.receiverName} · ${order.receiverMobile} · ${order.receiverAddress}|">Người nhận</p>
+        <div th:each="item : ${order.items}" class="summary-row">
+            <span th:text="${item.productName}">Sản phẩm</span>
+            <span><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></span>
+        </div>
+        <p class="total-row"><span>Tổng thanh toán</span><strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
+        <div class="card" style="margin-top:12px;">
+            <h2>Hướng dẫn thanh toán</h2>
+            <p th:text="|Ngân hàng: ${bankName}|">Ngân hàng</p>
+            <p th:text="|Số tài khoản: ${accountNumber}|">Số tài khoản</p>
+            <p th:text="|Chủ tài khoản: ${accountName}|">Chủ tài khoản</p>
+            <p th:text="|Nội dung: ${transferContent}|">Nội dung</p>
+        </div>
+        <a class="btn" th:href="@{/products}" style="margin-top:16px;">Tiếp tục mua sắm</a>
+    </section>
+    <section class="card" th:if="${order == null}">
+        <h1>Không tìm thấy đơn vừa đặt</h1>
+        <a class="btn" th:href="@{/}">Về trang chủ</a>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

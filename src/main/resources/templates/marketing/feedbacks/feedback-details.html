@@ -1,12 +1,30 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>feedback-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Chi tiết phản hồi')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Chi tiết phản hồi')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <article class="card stack">
+            <p><span th:replace="~{fragments/header :: visibility(${feedback.visible})}"></span></p>
+            <h2 th:text="${feedback.fullName}">Tên</h2>
+            <p th:text="|${feedback.email} · ${feedback.mobile}|">Liên hệ</p>
+            <p>Sản phẩm: <span th:text="${feedback.product != null ? feedback.product.name : 'Phản hồi chung'}"></span></p>
+            <p class="stars"><th:block th:each="i : ${#numbers.sequence(1, feedback.rating)}">★</th:block></p>
+            <p th:text="${feedback.content}">Nội dung</p>
+            <div class="gallery">
+                <img th:each="image : ${feedback.images}" th:src="${image.imageUrl}" alt="">
+            </div>
+            <form th:action="@{|/marketing/feedbacks/${feedback.id}/toggle|}" method="post">
+                <button type="submit" th:text="${feedback.visible} ? 'Ẩn phản hồi' : 'Hiện phản hồi'">Ẩn</button>
+                <a class="btn btn-ghost" th:href="@{/marketing/feedbacks}">Quay lại</a>
+            </form>
+        </article>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

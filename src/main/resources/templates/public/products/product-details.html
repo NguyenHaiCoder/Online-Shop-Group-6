@@ -1,12 +1,56 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>product-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head(${product.name})}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <p class="crumbs">
+        <a th:href="@{/}">Trang chủ</a> / <a th:href="@{/products}">Sản phẩm</a> /
+        <span th:text="${product.category != null ? product.category.name : product.name}">Danh mục</span>
+    </p>
+    <article class="card">
+        <div class="detail">
+            <div>
+                <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" th:alt="${product.name}" style="border-radius:16px; background:#f3f6fb;">
+                <div class="ph wide" th:if="${product.thumbnail == null}"></div>
+                <div class="thumbs">
+                    <img th:each="image : ${product.images}" th:src="${image.imageUrl}" alt="">
+                </div>
+            </div>
+            <div>
+                <h1 th:text="${product.name}">Sản phẩm</h1>
+                <p class="price"><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}">0</span>
+                    <span class="price-old" th:if="${product.salePrice != null}"><span th:replace="~{fragments/header :: vnd(${product.originalPrice})}">0</span></span>
+                </p>
+                <p><span class="stock" th:if="${product.stockQuantity > 0}">Còn hàng</span></p>
+                <p class="muted" th:text="${product.briefInfo}"></p>
+                <form class="buy-row" th:action="@{/cart/add}" method="post">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <span class="qty"><button type="button" disabled>−</button><input type="number" name="quantity" value="1" min="1" th:max="${product.stockQuantity}"><button type="button" disabled>+</button></span>
+                    <button type="submit" th:disabled="${product.stockQuantity <= 0}">Thêm vào giỏ hàng</button>
+                </form>
+            </div>
+        </div>
+        <div class="detail-grid">
+            <section class="card">
+                <h2>Mô tả sản phẩm</h2>
+                <div class="prose" th:text="${product.description}">Mô tả</div>
+            </section>
+            <section class="card">
+                <h2>Thông tin</h2>
+                <table class="spec">
+                    <tr><td>Danh mục</td><td th:text="${product.category != null ? product.category.name : '—'}">—</td></tr>
+                    <tr><td>Tồn kho</td><td th:text="${product.stockQuantity}">0</td></tr>
+                    <tr><td>Giá niêm yết</td><td><span th:replace="~{fragments/header :: vnd(${product.originalPrice})}">0</span></td></tr>
+                </table>
+                <p style="margin-top:12px;"><a th:href="@{/feedback(productId=${product.id})}">Gửi phản hồi về sản phẩm</a></p>
+            </section>
+        </div>
+    </article>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

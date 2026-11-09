@@ -40,6 +40,10 @@ import java.util.List;
 @Table(name = "customers")
 public class Customer extends BaseEntity {
 
+    /** Ma tren danh sach, vi du KH0001. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
     @Column(nullable = false, length = 100)
     private String fullName;
 
@@ -55,6 +59,14 @@ public class Customer extends BaseEntity {
 
     @Column(length = 255)
     private String address;
+
+    /** Ghi chu cua Marketing, khong phai ghi chu don hang */
+    @Column(length = 500)
+    private String note;
+
+    /** Hien/An ho so tren man Khach hang. Khac voi status vong doi. */
+    @Column(nullable = false)
+    private boolean visible = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

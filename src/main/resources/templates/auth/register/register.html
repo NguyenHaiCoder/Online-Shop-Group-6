@@ -1,12 +1,56 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>register</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<head th:replace="~{fragments/header :: head('Đăng ký')}"></head>
+<body th:with="authPage=${true}">
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="auth-page" id="content">
+    <!--/* Model: registerForm, registerErrors (Map field -> message) */-->
+    <form th:fragment="modal" class="auth-card" th:action="@{/auth/register}" method="post">
+        <button type="button" class="modal-close" data-close aria-label="Đóng">×</button>
+        <h1 class="center">Tạo tài khoản NOVA SHOP</h1>
+        <div class="form-grid">
+            <label class="field">Họ tên
+                <input name="fullName" required minlength="2" maxlength="100" th:value="${registerForm != null ? registerForm.fullName : ''}" th:classappend="${registerErrors != null && registerErrors['fullName'] != null} ? 'is-invalid'">
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['fullName'] != null}" th:text="${registerErrors['fullName']}"></small>
+            </label>
+            <label class="field">Giới tính
+                <select name="gender" required>
+                    <option value="">Chọn</option>
+                    <option value="MALE" th:selected="${registerForm != null && registerForm.gender != null && registerForm.gender.name() == 'MALE'}">Nam</option>
+                    <option value="FEMALE" th:selected="${registerForm != null && registerForm.gender != null && registerForm.gender.name() == 'FEMALE'}">Nữ</option>
+                    <option value="OTHER" th:selected="${registerForm != null && registerForm.gender != null && registerForm.gender.name() == 'OTHER'}">Khác</option>
+                </select>
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['gender'] != null}" th:text="${registerErrors['gender']}"></small>
+            </label>
+            <label class="field">Email
+                <input type="email" name="email" required maxlength="100" th:value="${registerForm != null ? registerForm.email : ''}">
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['email'] != null}" th:text="${registerErrors['email']}"></small>
+            </label>
+            <label class="field">Số điện thoại
+                <input name="mobile" required pattern="0[0-9]{9}" maxlength="15" th:value="${registerForm != null ? registerForm.mobile : ''}">
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['mobile'] != null}" th:text="${registerErrors['mobile']}"></small>
+            </label>
+            <label class="field">Địa chỉ
+                <input name="address" required maxlength="255" th:value="${registerForm != null ? registerForm.address : ''}">
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['address'] != null}" th:text="${registerErrors['address']}"></small>
+            </label>
+            <label class="field">Mật khẩu
+                <input type="password" name="password" required minlength="6" maxlength="32" autocomplete="new-password">
+                <small class="hint">6–32 ký tự, có ít nhất một chữ và một số.</small>
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['password'] != null}" th:text="${registerErrors['password']}"></small>
+            </label>
+            <label class="field">Nhập lại mật khẩu
+                <input type="password" name="confirmPassword" required minlength="6" maxlength="32" autocomplete="new-password">
+                <small class="field-error" th:if="${registerErrors != null && registerErrors['confirmPassword'] != null}" th:text="${registerErrors['confirmPassword']}"></small>
+            </label>
+            <button class="btn-block" type="submit">Tạo tài khoản</button>
+            <p class="center">Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a></p>
+            <p class="center"><a th:href="@{/}">← Về trang chủ</a></p>
+        </div>
+    </form>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('register')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

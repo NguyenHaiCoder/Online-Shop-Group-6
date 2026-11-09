@@ -1,12 +1,60 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>feedback-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Phản hồi')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Phản hồi')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="filters" method="get" th:action="@{/marketing/feedbacks}">
+            <input type="search" name="keyword" placeholder="Tên hoặc nội dung" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+            <select name="productId">
+                <option value="">Mọi sản phẩm</option>
+                <option th:each="product : ${products != null ? products : T(java.util.Collections).emptyList()}" th:value="${product.id}" th:text="${product.name}" th:selected="${param.productId != null && param.productId[0] == '' + product.id}"></option>
+            </select>
+            <select name="rating">
+                <option value="">Mọi số sao</option>
+                <option th:each="star : ${#numbers.sequence(1, 5)}" th:value="${star}" th:text="|${star} sao|" th:selected="${param.rating != null && param.rating[0] == '' + star}"></option>
+            </select>
+            <select name="visible">
+                <option value="">Mọi trạng thái</option>
+                <option value="true" th:selected="${param.visible != null && param.visible[0] == 'true'}">Hiển thị</option>
+                <option value="false" th:selected="${param.visible != null && param.visible[0] == 'false'}">Ẩn</option>
+            </select>
+            <button type="submit">Lọc</button>
+        </form>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th><a th:replace="~{fragments/pagination :: sort('fullName', 'Người gửi')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('product', 'Sản phẩm')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('rating', 'Sao')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('visible', 'Trạng thái')}"></a></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="5" class="empty">Chưa có phản hồi.</td></tr>
+                <tr th:if="${page != null}" th:each="row : ${page.content}">
+                    <td><a th:href="@{|/marketing/feedbacks/${row.id}|}" th:text="${row.fullName}">Tên</a></td>
+                    <td th:text="${row.product != null ? row.product.name : 'Phản hồi chung'}"></td>
+                    <td class="stars"><th:block th:each="i : ${#numbers.sequence(1, row.rating)}">★</th:block></td>
+                    <td><span th:replace="~{fragments/header :: visibility(${row.visible})}"></span></td>
+                    <td>
+                        <form th:action="@{|/marketing/feedbacks/${row.id}/toggle|}" method="post">
+                            <button class="btn-ghost" type="submit" th:text="${row.visible} ? 'Ẩn' : 'Hiện'">Ẩn</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

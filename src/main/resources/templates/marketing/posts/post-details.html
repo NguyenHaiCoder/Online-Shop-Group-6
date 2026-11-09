@@ -1,12 +1,49 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>post-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Bài viết')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm bài viết' : 'Chi tiết bài viết')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="card form-grid" th:object="${form}" method="post" enctype="multipart/form-data"
+              th:action="${creating} ? @{/marketing/posts} : @{|${#request.requestURI}|}">
+            <img th:if="${post != null && post.thumbnail != null}" th:src="${post.thumbnail}" alt="" style="max-width:240px">
+            <label class="field">Ảnh đại diện
+                <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp">
+            </label>
+            <label class="field">Danh mục
+                <select th:field="*{categoryId}" required>
+                    <option value="">Chọn</option>
+                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                </select>
+                <small class="field-error" th:errors="*{categoryId}"></small>
+            </label>
+            <label class="field">Tiêu đề
+                <input th:field="*{title}" required maxlength="255">
+                <small class="field-error" th:errors="*{title}"></small>
+            </label>
+            <label class="field">Tóm tắt
+                <textarea th:field="*{briefInfo}" maxlength="500" rows="3"></textarea>
+                <small class="field-error" th:errors="*{briefInfo}"></small>
+            </label>
+            <label class="field">Nội dung
+                <textarea th:field="*{content}" required rows="10"></textarea>
+                <small class="field-error" th:errors="*{content}"></small>
+            </label>
+            <div class="checks">
+                <label><input type="checkbox" th:field="*{featured}"> Nổi bật</label>
+                <label><input type="checkbox" th:field="*{visible}"> Hiển thị</label>
+            </div>
+            <div class="form-actions">
+                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
+                <a class="btn btn-ghost" th:href="@{/marketing/posts}">Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

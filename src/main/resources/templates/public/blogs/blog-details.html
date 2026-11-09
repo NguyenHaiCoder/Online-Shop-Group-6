@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>blog-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head(${post.title})}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <p class="crumbs"><a th:href="@{/}">Trang chủ</a> / <a th:href="@{/blogs}">Blog</a> / <span th:text="${post.title}">Bài viết</span></p>
+    <article class="card" style="padding:28px;">
+        <p class="muted"><span th:text="${post.category != null ? post.category.name : ''}"></span> · <span th:text="${post.author != null ? post.author.fullName : ''}"></span> · <span th:text="${#temporals.format(post.updatedAt, 'dd/MM/yyyy')}"></span></p>
+        <h1 th:text="${post.title}">Tiêu đề</h1>
+        <img th:if="${post.thumbnail != null}" th:src="${post.thumbnail}" th:alt="${post.title}" style="border-radius:16px; margin:12px 0; max-height:420px; width:100%; object-fit:cover;">
+        <div class="prose" th:text="${post.content}">Nội dung</div>
+    </article>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

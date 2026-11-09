@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="site-footer">
+    <div class="footer-inner">
+        <a class="brand" th:href="@{/}">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#2563eb" d="M6 4h8.5l6.2 14.2L26.2 4H30L20.2 28h-7.2L6 4z"/></svg>
+            NOVA SHOP
+        </a>
+        <nav class="footer-links">
+            <a th:href="@{/}">Trang chủ</a>
+            <a th:href="@{/products}">Sản phẩm</a>
+            <a th:href="@{/blogs}">Blog</a>
+        </nav>
+        <a class="link" th:href="@{/feedback}">Gửi phản hồi</a>
+    </div>
+</footer>
+</body>
+</html>

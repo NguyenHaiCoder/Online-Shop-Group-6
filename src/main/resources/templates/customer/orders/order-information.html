@@ -1,12 +1,61 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>order-information</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head('Chi tiết đơn hàng')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <div class="layout">
+        <article class="card">
+            <p class="eyebrow"><a th:href="@{/my-orders}">Đơn hàng của tôi</a></p>
+            <h1 th:text="|Đơn #${order.id}|">Đơn</h1>
+            <p>Đặt lúc <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                · <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span></p>
+            <p>Tổng tiền: <strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
+            <h2>Người nhận</h2>
+            <p th:text="${order.receiverName}"></p>
+            <p><span th:replace="~{fragments/header :: gender(${order.receiverGender})}"></span> · <span th:text="${order.receiverMobile}"></span> · <span th:text="${order.receiverEmail}"></span></p>
+            <p th:text="${order.receiverAddress}"></p>
+            <p th:if="${order.note != null}" th:text="|Ghi chú: ${order.note}|"></p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:each="item : ${order.items}">
+                        <td class="wrap">
+                            <img class="thumb-sm" th:if="${item.product != null && item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="">
+                            <span th:text="${item.productName}">Sản phẩm</span>
+                        </td>
+                        <td th:text="${item.product != null && item.product.category != null ? item.product.category.name : ''}"></td>
+                        <td><span th:replace="~{fragments/header :: vnd(${item.unitPrice})}">0</span></td>
+                        <td th:text="${item.quantity}">1</td>
+                        <td><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></td>
+                        <td class="row-actions">
+                            <form th:if="${item.product != null}" class="inline" th:action="@{/cart/add}" method="post">
+                                <input type="hidden" name="productId" th:value="${item.product.id}">
+                                <input type="hidden" name="quantity" th:value="${item.quantity}">
+                                <button class="btn-ghost" type="submit">Mua lại</button>
+                            </form>
+                            <a th:if="${item.product != null}" th:href="@{/feedback(productId=${item.product.id})}">Phản hồi</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-actions" th:if="${order.status.name() == 'SUBMITTED'}">
+                <form th:action="@{|/my-orders/${order.id}/update|}" method="post">
+                    <button type="submit">Sửa đơn</button>
+                </form>
+                <form th:action="@{|/my-orders/${order.id}/cancel|}" method="post">
+                    <button class="btn-danger" type="submit" data-confirm="Hủy đơn này?">Hủy đơn</button>
+                </form>
+            </div>
+        </article>
+        <aside th:replace="~{fragments/public-sider :: sider('products')}"></aside>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

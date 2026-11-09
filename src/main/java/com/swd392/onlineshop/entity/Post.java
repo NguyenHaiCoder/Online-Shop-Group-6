@@ -23,6 +23,10 @@ import lombok.Setter;
 @Table(name = "posts")
 public class Post extends BaseEntity {
 
+    /** Ma bai viet de tim kiem, vi du BV0001. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
+
     @Column(nullable = false, length = 255)
     private String title;
 

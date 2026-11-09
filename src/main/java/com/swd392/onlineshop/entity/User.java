@@ -16,8 +16,8 @@ import lombok.Setter;
 /**
  * Tai khoan dang nhap cua Customer, Marketing, Sale, Sale Manager, Admin.
  * - Register (pop-up): full name, gender, email, mobile, address, password.
- *   Luu User voi status NOT_VERIFIED + UserToken VERIFY_EMAIL, gui link qua email.
- *   Click link -> ACTIVE, dong thoi tao/lien ket Customer (contact) cung email.
+ *   Khong gui email xac thuc. Tai khoan moi de status ACTIVE.
+ *   Dong thoi tao/lien ket Customer (contact) cung email.
  * - Spring Security form login (session): username = email, password = BCrypt,
  *   authority = "ROLE_" + role.value, chi cho dang nhap khi status = ACTIVE.
  * - User Profile: sua thong tin + avatar, khong duoc sua email.
@@ -31,6 +31,10 @@ import lombok.Setter;
 @Entity
 @Table(name = "users")
 public class User extends BaseEntity {
+
+    /** Ma tren danh sach admin, vi du ND0001. */
+    @Column(nullable = false, unique = true, length = 20)
+    private String code;
 
     @Column(nullable = false, length = 100)
     private String fullName;
@@ -64,4 +68,12 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserStatus status = UserStatus.NOT_VERIFIED;
+
+    /** Cot "Xac minh email" tren danh sach nguoi dung. Khong gan voi viec gui mail. */
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    /** An/Hien tren man admin. An khong co nghia khoa dang nhap. */
+    @Column(nullable = false)
+    private boolean visible = true;
 }

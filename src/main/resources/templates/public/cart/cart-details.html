@@ -1,12 +1,56 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cart-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<head th:replace="~{fragments/header :: head('Giỏ hàng')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content" th:with="blocked=${lines == null || lines.empty || !#lists.isEmpty(lines.?[warning != null])}">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <p class="crumbs"><a th:href="@{/}">Trang chủ</a> / <span>Giỏ hàng</span></p>
+    <h1>Giỏ hàng của bạn</h1>
+    <p class="muted" th:text="${lines == null ? '0 sản phẩm' : lines.size() + ' sản phẩm'}">0 sản phẩm</p>
+    <div class="banner" th:if="${session.EDITING_ORDER_ID != null}">
+        <span th:text="|Đang sửa đơn #${session.EDITING_ORDER_ID}|">Đang sửa đơn</span>
+        <form th:action="@{/cart/cancel-edit}" method="post"><button class="btn-ghost" type="submit">Hủy sửa</button></form>
+    </div>
+    <div class="cart-layout" th:if="${lines != null && !lines.empty}">
+        <section class="card">
+            <div class="cart-line" style="color:#64748b; font-size:13px;"><span></span><span>Sản phẩm</span><span>Đơn giá</span><span>Số lượng</span><span>Thành tiền</span></div>
+            <div class="cart-line" th:each="line : ${lines}">
+                <img class="thumb-sm" th:if="${line.thumbnail != null}" th:src="${line.thumbnail}" alt="">
+                <div class="ph" th:if="${line.thumbnail == null}"></div>
+                <div>
+                    <a th:href="@{|/products/${line.productId}|}" th:text="${line.name}">Sản phẩm</a>
+                    <p class="warn-text" th:if="${line.warning != null}" th:text="${line.warning}"></p>
+                    <p th:if="${line.warning == null}"><span class="stock">Còn hàng</span></p>
+                </div>
+                <span th:replace="~{fragments/header :: vnd(${line.unitPrice})}">0</span>
+                <form th:action="@{/cart/update}" method="post" class="qty">
+                    <input type="hidden" name="productId" th:value="${line.productId}">
+                    <input type="number" name="quantity" min="1" th:value="${line.quantity}">
+                    <button type="submit">Lưu</button>
+                </form>
+                <div>
+                    <strong th:replace="~{fragments/header :: vnd(${line.lineTotal})}">0</strong>
+                    <form th:action="@{/cart/remove}" method="post"><input type="hidden" name="productId" th:value="${line.productId}"><button class="linkish" type="submit" style="background:none; color:#2563eb;">Bỏ khỏi giỏ</button></form>
+                </div>
+            </div>
+        </section>
+        <aside class="card">
+            <h2>Tóm tắt đơn hàng</h2>
+            <p class="summary-row"><span>Tiền hàng</span><span th:replace="~{fragments/header :: vnd(${lines.![lineTotal].size() > 0 ? #aggregates.sum(lines.![lineTotal]) : 0})}">0</span></p>
+            <p class="summary-row"><span>Phí giao hàng</span><span class="muted">Tính khi đặt hàng</span></p>
+            <p class="total-row"><span>Tạm tính</span><strong th:text="${#numbers.formatDecimal(#aggregates.sum(lines.![lineTotal]), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0</strong></p>
+            <a class="btn btn-block" th:href="@{/cart/contact}" th:classappend="${blocked} ? 'is-disabled'" style="display:block; text-align:center; margin-top:12px;">Tiến hành đặt hàng →</a>
+            <a class="btn btn-ghost btn-block" th:href="@{/products}" style="display:block; text-align:center; margin-top:8px;">Tiếp tục mua sắm</a>
+        </aside>
+    </div>
+    <section class="card" th:if="${lines == null || lines.empty}">
+        <p class="empty">Giỏ hàng trống.</p>
+        <a class="btn" th:href="@{/products}">Khám phá sản phẩm</a>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

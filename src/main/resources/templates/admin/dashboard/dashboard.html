@@ -1,12 +1,77 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Tổng quan quản trị')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Tổng quan')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="filters" method="get" th:action="@{/admin/dashboard}">
+            <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
+            <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
+            <button type="submit">Xem</button>
+        </form>
+        <div class="stat-row">
+            <article class="stat"><span class="muted">Đơn hoàn tất</span><strong th:text="${successCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Đơn đã hủy</span><strong th:text="${cancelledCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Đơn mới gửi</span><strong th:text="${submittedCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Doanh thu</span><strong><span th:replace="~{fragments/header :: vnd(${revenueTotal})}">0</span></strong></article>
+        </div>
+        <div class="stat-row">
+            <article class="stat"><span class="muted">Khách đăng ký mới</span><strong th:text="${newUserCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Contact mua lần đầu</span><strong th:text="${newBuyerCount} ?: 0">0</strong></article>
+            <article class="stat"><span class="muted">Rating trung bình</span><strong th:text="${averageRating != null ? #numbers.formatDecimal(averageRating, 1, 'POINT', 1, 'COMMA') : '—'}">0</strong></article>
+        </div>
+        <section class="card">
+            <h2>Doanh thu theo danh mục</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Danh mục</th><th>Doanh thu</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${revenueByCategory == null || revenueByCategory.empty}"><td colspan="2" class="empty">Không có dữ liệu.</td></tr>
+                    <tr th:each="row : ${revenueByCategory}">
+                        <td th:text="${row.name}"></td>
+                        <td><span th:replace="~{fragments/header :: vnd(${row.amount})}">0</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="card">
+            <h2>Rating theo danh mục</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Danh mục</th><th>Rating</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${ratingByCategory == null || ratingByCategory.empty}"><td colspan="2" class="empty">Không có dữ liệu.</td></tr>
+                    <tr th:each="row : ${ratingByCategory}">
+                        <td th:text="${row.name}"></td>
+                        <td th:text="${row.rating}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="card">
+            <h2>Đơn theo ngày</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Ngày</th><th>Tất cả đơn</th><th>Đơn hoàn tất</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${dailyOrders == null || dailyOrders.empty}"><td colspan="3" class="empty">Không có dữ liệu trong khoảng này.</td></tr>
+                    <tr th:each="point : ${dailyOrders}">
+                        <td th:text="${#temporals.format(point.date, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${point.total}"></td>
+                        <td th:text="${point.success}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

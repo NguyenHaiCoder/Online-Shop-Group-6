@@ -31,6 +31,10 @@ public class OrderItem extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    /** Ma san pham tai thoi diem dat, de don cu khong doi khi Marketing sua ma */
+    @Column(length = 50)
+    private String productCode;
+
     @Column(nullable = false, length = 255)
     private String productName;
 

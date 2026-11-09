@@ -27,12 +27,17 @@ public class Slider extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String image;
 
-    /** Link khi click vao slider */
-    @Column(length = 255)
-    private String backlink;
-
+    /** Noi dung ngan tren form slider. */
     @Column(length = 500)
     private String notes;
+
+    /** Nhan nut, vi du "Kham pha san pham". */
+    @Column(nullable = false, length = 100)
+    private String buttonLabel;
+
+    /** Lien ket dich khi bam nut. */
+    @Column(length = 255)
+    private String backlink;
 
     private Integer displayOrder;
 

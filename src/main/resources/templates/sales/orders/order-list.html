@@ -1,12 +1,57 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>order-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Đơn hàng')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Đơn hàng')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="filters" method="get" th:action="@{/sales/orders}">
+            <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
+            <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
+            <input type="search" name="keyword" placeholder="Mã đơn hoặc tên khách" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+            <select name="saleId" sec:authorize="hasRole('SALE_MANAGER')">
+                <option value="">Tất cả Sale</option>
+                <option th:each="sale : ${sales != null ? sales : T(java.util.Collections).emptyList()}" th:value="${sale.id}" th:text="${sale.fullName}" th:selected="${param.saleId != null && param.saleId[0] == '' + sale.id}"></option>
+            </select>
+            <select name="status">
+                <option value="">Mọi trạng thái</option>
+                <option th:each="st : ${T(com.swd392.onlineshop.enums.OrderStatus).values()}" th:value="${st}"
+                        th:selected="${param.status != null && param.status[0] == st.name()}"
+                        th:text="${st.name() == 'SUBMITTED' ? 'Đã gửi đơn' : (st.name() == 'CONFIRMED' ? 'Đã xác nhận' : (st.name() == 'SHIPPING' ? 'Đang giao' : (st.name() == 'SUCCESS' ? 'Hoàn tất' : 'Đã hủy')))}">Đã gửi đơn</option>
+            </select>
+            <button type="submit">Lọc</button>
+        </form>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th><a th:replace="~{fragments/pagination :: sort('createdAt', 'Ngày đặt')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('customer', 'Khách hàng')}"></a></th>
+                    <th>Sản phẩm</th>
+                    <th><a th:replace="~{fragments/pagination :: sort('totalAmount', 'Tổng tiền')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('status', 'Trạng thái')}"></a></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="6" class="empty">Không có đơn hàng.</td></tr>
+                <tr th:if="${page != null}" th:each="row : ${page.content}">
+                    <td><a th:href="@{|/sales/orders/${row.id}|}" th:text="${row.id}">1</a></td>
+                    <td th:text="${#temporals.format(row.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${row.customer != null ? row.customer.fullName : ''}"></td>
+                    <td class="wrap" th:text="${row.items == null || row.items.empty ? '' : row.items[0].productName + (row.items.size() > 1 ? ' và ' + (row.items.size() - 1) + ' SP khác' : '')}"></td>
+                    <td><span th:replace="~{fragments/header :: vnd(${row.totalAmount})}">0</span></td>
+                    <td><span th:replace="~{fragments/header :: orderStatus(${row.status})}"></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

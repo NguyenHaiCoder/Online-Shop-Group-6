@@ -1,12 +1,49 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>my-orders</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Đơn hàng của tôi')}"></head>
 <body>
-
+<div th:replace="~{fragments/header :: bar}"></div>
+<main class="page" id="content">
+    <div th:replace="~{fragments/header :: messages}"></div>
+    <div class="catalog">
+        <aside class="account-side">
+            <div class="who" style="margin-bottom:12px;">
+                <span class="avatar">N</span>
+                <span><strong sec:authentication="name">Khách</strong></span>
+            </div>
+            <a class="is-active" th:href="@{/my-orders}">Đơn hàng của tôi</a>
+            <form th:action="@{/auth/logout}" method="post"><button class="btn-ghost" type="submit" style="width:100%; margin-top:12px;">Đăng xuất</button></form>
+        </aside>
+        <section>
+            <h1>Đơn hàng của tôi</h1>
+            <div class="stack">
+                <article class="card order-card" th:if="${page != null}" th:each="row : ${page.content}">
+                    <div class="order-top">
+                        <div>
+                            <strong th:text="|Đơn hàng #${row.id}|">Đơn</strong>
+                            <p class="muted" th:text="|Ngày đặt: ${#temporals.format(row.createdAt, 'dd/MM/yyyy')}|"></p>
+                        </div>
+                        <span th:replace="~{fragments/header :: orderStatus(${row.status})}"></span>
+                    </div>
+                    <div class="section-head">
+                        <div>
+                            <p th:text="${row.items == null || row.items.empty ? '' : row.items[0].productName + (row.items.size() > 1 ? ' và ' + (row.items.size() - 1) + ' SP khác' : '')}">Sản phẩm</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <p class="muted">Tổng thanh toán</p>
+                            <p class="price"><span th:replace="~{fragments/header :: vnd(${row.totalAmount})}">0</span></p>
+                            <a class="btn" th:href="@{|/my-orders/${row.id}|}">Xem chi tiết →</a>
+                        </div>
+                    </div>
+                </article>
+                <p class="empty card" th:if="${page == null || page.totalElements == 0}">Bạn chưa có đơn hàng. <a th:href="@{/products}">Bắt đầu mua sắm</a></p>
+            </div>
+            <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+        </section>
+    </div>
+</main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

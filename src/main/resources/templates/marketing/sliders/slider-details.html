@@ -1,12 +1,41 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>slider-details</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Slider')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm slider' : 'Chi tiết slider')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <form class="card form-grid" th:object="${form}" method="post" enctype="multipart/form-data"
+              th:action="${creating} ? @{/marketing/sliders} : @{|${#request.requestURI}|}">
+            <img th:if="${slider != null}" th:src="${slider.image}" alt="" style="max-width:320px">
+            <label class="field">Ảnh
+                <input type="file" name="image" accept="image/jpeg,image/png,image/webp" th:required="${creating}">
+            </label>
+            <label class="field">Tiêu đề
+                <input th:field="*{title}" required maxlength="255">
+                <small class="field-error" th:errors="*{title}"></small>
+            </label>
+            <label class="field">Liên kết
+                <input th:field="*{backlink}" maxlength="255" placeholder="/products hoặc https://">
+                <small class="field-error" th:errors="*{backlink}"></small>
+            </label>
+            <label class="field">Ghi chú
+                <textarea th:field="*{notes}" maxlength="500" rows="3"></textarea>
+            </label>
+            <label class="field">Thứ tự
+                <input type="number" th:field="*{displayOrder}">
+            </label>
+            <label class="checks"><input type="checkbox" th:field="*{visible}"> Hiển thị</label>
+            <div class="form-actions">
+                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
+                <a class="btn btn-ghost" th:href="@{/marketing/sliders}">Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

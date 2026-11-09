@@ -1,12 +1,54 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>customer-list</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head('Khách hàng')}"></head>
+<body class="staff-body">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <header th:replace="~{fragments/staff-menu :: top('Khách hàng')}"></header>
+        <div th:replace="~{fragments/header :: messages}"></div>
+        <div class="split">
+            <form class="filters" method="get" th:action="@{/marketing/customers}">
+                <input type="search" name="keyword" placeholder="Tên, email hoặc số điện thoại" th:value="${param.keyword != null ? param.keyword[0] : ''}">
+                <select name="status">
+                    <option value="">Mọi trạng thái</option>
+                    <option th:each="st : ${T(com.swd392.onlineshop.enums.CustomerStatus).values()}" th:value="${st}" th:text="${st.name() == 'CUSTOMER' ? 'Khách hàng' : (st.name() == 'POTENTIAL' ? 'Tiềm năng' : 'Liên hệ')}" th:selected="${param.status != null && param.status[0] == st.name()}"></option>
+                </select>
+                <button type="submit">Lọc</button>
+            </form>
+            <a class="btn" th:href="@{/marketing/customers/new}">Thêm khách hàng</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th><a th:replace="~{fragments/pagination :: sort('fullName', 'Họ tên')}"></a></th>
+                    <th>Giới tính</th>
+                    <th><a th:replace="~{fragments/pagination :: sort('email', 'Email')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('mobile', 'Điện thoại')}"></a></th>
+                    <th><a th:replace="~{fragments/pagination :: sort('status', 'Trạng thái')}"></a></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${page == null || page.totalElements == 0}"><td colspan="7" class="empty">Chưa có khách hàng.</td></tr>
+                <tr th:if="${page != null}" th:each="row : ${page.content}">
+                    <td th:text="${row.id}"></td>
+                    <td><a th:href="@{|/marketing/customers/${row.id}|}" th:text="${row.fullName}">Tên</a></td>
+                    <td><span th:replace="~{fragments/header :: gender(${row.gender})}"></span></td>
+                    <td th:text="${row.email}"></td>
+                    <td th:text="${row.mobile}"></td>
+                    <td><span th:replace="~{fragments/header :: customerStatus(${row.status})}"></span></td>
+                    <td><a th:href="@{|/marketing/customers/${row.id}|}">Sửa</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
 </body>
 </html>
