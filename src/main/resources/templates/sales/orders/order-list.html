@@ -7,7 +7,7 @@
     <div class="staff-content" id="content">
         <header th:replace="~{fragments/staff-menu :: top(${listTitle != null ? listTitle : 'Đơn hàng'})}"></header>
         <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="filters" method="get" th:action="@{/sales/orders}">
+        <form class="filters order-filters" method="get" th:action="@{/sales/orders}">
             <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
             <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
             <input type="search" name="keyword" placeholder="Mã đơn hoặc tên khách" th:value="${param.keyword != null ? param.keyword[0] : ''}">

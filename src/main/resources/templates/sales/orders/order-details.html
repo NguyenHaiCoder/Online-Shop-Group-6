@@ -30,7 +30,7 @@
                     <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
                     <tbody>
                     <tr th:each="item : ${order.items}">
-                        <td class="wrap">
+                        <td class="product-line">
                             <img class="thumb-sm" th:if="${item.thumbnail != null}" th:src="${item.thumbnail}" alt="">
                             <span th:text="${item.productName}"></span>
                         </td>
@@ -47,7 +47,7 @@
             <p>Tổng tiền: <strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
         </article>
 
-        <form class="card form-grid" th:action="@{|/sales/orders/${order.id}|}" method="post"
+        <form class="card order-form" th:action="@{|/sales/orders/${order.id}|}" method="post"
               th:if="${order.updatable}">
             <h2>Cập nhật đơn</h2>
             <label class="field">Trạng thái
@@ -68,7 +68,7 @@
             <p th:text="${order.saleNote != null ? order.saleNote : 'Không có ghi chú.'}"></p>
         </section>
 
-        <form class="card form-grid" sec:authorize="hasRole('SALE_MANAGER')" th:action="@{|/sales/orders/${order.id}/assign|}" method="post">
+        <form class="card order-form" sec:authorize="hasRole('SALE_MANAGER')" th:action="@{|/sales/orders/${order.id}/assign|}" method="post">
             <h2>Giao cho Sale</h2>
             <label class="field">Sale
                 <select name="saleId" required>
