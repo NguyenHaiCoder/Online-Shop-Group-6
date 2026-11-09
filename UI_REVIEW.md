@@ -22,7 +22,7 @@
 - Ảnh trước/sau nằm trong `.ui-review/screenshots/` (giữ local, được Git ignore).
 - Test tự động kiểm tra dữ liệu public, chặn chi tiết bản ghi ẩn và phục vụ ảnh dự phòng; kết hợp test Admin/auth đã có.
 
-Phạm vi kiểm tra giao diện lần này: trang chủ, login/register, public product/blog và các trang quản lý người dùng/cấu hình Admin. Các phân hệ giỏ hàng/checkout, hồ sơ/đổi mật khẩu, Marketing, Sale vẫn cần backend tương ứng; đây không phải xác nhận hoàn tất toàn bộ project.
+Phạm vi kiểm tra giao diện lần này: trang chủ, login/register, public product/blog và các trang quản lý người dùng/cấu hình Admin. Giỏ hàng/checkout và hồ sơ/đổi mật khẩu vẫn cần backend tương ứng. Marketing/Sale sau đó đã được tích hợp và kiểm tra bổ sung: xem MERGE_VALIDATION.md.
 
 ## Ảnh banner/đăng nhập
 

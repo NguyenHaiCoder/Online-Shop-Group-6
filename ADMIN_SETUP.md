@@ -32,7 +32,7 @@ Admin có thể upload avatar khi tạo/sửa người dùng. Avatar tối đa 2
 | SALE, SALE_MANAGER | `/sales/**` |
 | CUSTOMER | `/my-orders/**` |
 
-Các khu vực ngoài Admin vẫn phụ thuộc vào controller nghiệp vụ của các phân hệ đó. Phân biệt Sale/Manager trên từng đơn cần được kiểm tra ở service đơn hàng khi triển khai phân hệ bán hàng.
+Marketing và Sale/Sale Manager đã được tích hợp từ main. OrderService kiểm tra quyền trên từng đơn: Sale chỉ xử lý đơn được giao; Manager có thể phân công lại. Kết quả kiểm tra tích hợp nằm trong MERGE_VALIDATION.md.
 
 Đăng ký công khai luôn nhận CUSTOMER, trạng thái ACTIVE, emailVerified=false; không gửi email xác thực. Khách đăng ký có thể đăng nhập ngay. Nếu đã có hồ sơ Customer cùng email, tài khoản được liên kết và giữ thông tin hồ sơ cũ.
 

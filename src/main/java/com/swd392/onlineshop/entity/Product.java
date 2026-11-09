@@ -83,8 +83,8 @@ public class Product extends BaseEntity {
     @OrderBy("displayOrder ASC")
     private List<ProductSpecification> specifications = new ArrayList<>();
 
-    /** Gia ban thuc te: salePrice neu co, nguoc lai originalPrice */
+    /** Gia ban theo UI: originalPrice; salePrice chi la cot legacy */
     public BigDecimal getCurrentPrice() {
-        return salePrice != null ? salePrice : originalPrice;
+        return originalPrice;
     }
 }

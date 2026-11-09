@@ -1,5 +1,5 @@
 package com.swd392.onlineshop.service.impl;
-import com.swd392.onlineshop.dto.request.ProductFilter;
+import com.swd392.onlineshop.dto.request.CatalogFilter;
 import com.swd392.onlineshop.dto.response.*;
 import com.swd392.onlineshop.entity.Setting;
 import com.swd392.onlineshop.enums.SettingType;
@@ -29,7 +29,7 @@ public class ShopServiceImpl implements ShopService {
             sliders.findByVisibleTrueOrderByDisplayOrderAscIdAsc().stream().map(s->new HomeView.SliderView(s.getTitle(),s.getImage(),s.getNotes(),s.getButtonLabel(),safeLink(s.getBacklink()))).toList());
     }
     private String safeLink(String link) { return link!=null && link.startsWith("/") && !link.startsWith("//") ? link : "/products"; }
-    @Override public Page<ProductRow> products(ProductFilter f,int page) {
+    @Override public Page<ProductRow> products(CatalogFilter f,int page) {
         return products.findAll((root,q,cb)->{
             List<Predicate> p=new ArrayList<>(); p.add(cb.isTrue(root.get("visible")));
             if(f.getKeyword()!=null && !f.getKeyword().isBlank()) {

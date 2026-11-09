@@ -1,9 +1,32 @@
 package com.swd392.onlineshop.dto.response;
-import com.swd392.onlineshop.entity.Post;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
-public record PostView(Long id,String title,String thumbnail,String briefInfo,String content,LocalDateTime updatedAt,
-                       SettingRow category,Author author) {
-    public record Author(String fullName) {}
-    public static PostView from(Post p) { return new PostView(p.getId(),p.getTitle(),p.getThumbnail(),p.getBriefInfo(),p.getContent(),p.getUpdatedAt(),
-        p.getCategory()==null?null:SettingRow.from(p.getCategory()),p.getAuthor()==null?null:new Author(p.getAuthor().getFullName())); }
+
+/** Man chi tiet bai viet (MP03). */
+@Getter
+@Builder
+@AllArgsConstructor
+public class PostView {
+
+    private Long id;
+    private String code;
+    private String title;
+    private String thumbnail;
+    private String briefInfo;
+    private String content;
+    private String authorName;
+    private boolean visible;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String categoryName;
+    public static PostView from(com.swd392.onlineshop.entity.Post p) {
+        return PostView.builder().id(p.getId()).code(p.getCode()).title(p.getTitle()).thumbnail(p.getThumbnail())
+            .briefInfo(p.getBriefInfo()).content(p.getContent()).authorName(p.getAuthor()==null?null:p.getAuthor().getFullName())
+            .categoryName(p.getCategory()==null?null:p.getCategory().getName()).visible(p.isVisible())
+            .createdAt(p.getCreatedAt()).updatedAt(p.getUpdatedAt()).build();
+    }
 }

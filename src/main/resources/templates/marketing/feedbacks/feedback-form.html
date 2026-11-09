@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(${creating} ? 'Thêm phản hồi' : 'Chỉnh sửa phản hồi')}"></head>
+<body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <!--/* MF02 Them phan hoi, MF04 Chinh sua phan hoi */-->
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm phản hồi' : 'Chỉnh sửa phản hồi')}"></header>
+        <div class="mk-bar">
+            <p class="mk-sub" th:text="${creating} ? 'Tạo phản hồi mới từ khách hàng hoặc nguồn khác.' : 'Cập nhật thông tin phản hồi của khách hàng'">Mô tả</p>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <div class="mk-strip" th:if="${feedback != null}">
+            <span>Mã phản hồi: <strong th:text="${feedback.code}"></strong></span>
+            <span>Nguồn: <strong th:text="${feedback.source}"></strong></span>
+            <span>Ngày tạo: <strong th:text="${#temporals.format(feedback.createdAt, 'dd/MM/yyyy')}"></strong></span>
+            <span>Cập nhật bởi: <strong th:text="${feedback.updatedByName != null ? feedback.updatedByName : '—'}"></strong>
+                · <span th:text="${#temporals.format(feedback.updatedAt, 'dd/MM/yyyy HH:mm')}"></span></span>
+        </div>
+
+        <form class="card mk-form" th:object="${form}" method="post"
+              th:action="${creating} ? @{/marketing/feedbacks} : @{|/marketing/feedbacks/${feedback.id}|}">
+            <div class="form-grid">
+                <label class="field"><span>Người gửi <b class="req">*</b></span>
+                    <input th:field="*{fullName}" maxlength="100" required placeholder="Nhập tên người gửi">
+                    <small class="field-error" th:errors="*{fullName}"></small>
+                </label>
+                <label class="field"><span>Email <b class="req">*</b></span>
+                    <input type="email" th:field="*{email}" maxlength="100" required placeholder="Nhập email người gửi">
+                    <small class="hint">Email phải thuộc một khách hàng đã có trong danh sách khách hàng.</small>
+                    <small class="field-error" th:errors="*{email}"></small>
+                </label>
+                <label class="field full"><span>Chủ đề <b class="req">*</b></span>
+                    <input th:field="*{subject}" maxlength="255" required placeholder="Nhập chủ đề phản hồi">
+                    <small class="field-error" th:errors="*{subject}"></small>
+                </label>
+                <label class="field full"><span>Sản phẩm liên quan <small class="muted">(tùy chọn)</small></span>
+                    <select th:field="*{productId}">
+                        <option value="">Chọn sản phẩm</option>
+                        <option th:each="p : ${products}" th:value="${p.id}" th:text="|${p.code} · ${p.name}|"></option>
+                    </select>
+                    <small class="field-error" th:errors="*{productId}"></small>
+                </label>
+                <label class="field full"><span>Nội dung <b class="req">*</b></span>
+                    <textarea th:field="*{content}" rows="5" maxlength="2000" required placeholder="Nhập nội dung phản hồi"></textarea>
+                    <small class="field-error" th:errors="*{content}"></small>
+                </label>
+                <div class="field full"><span>Trạng thái <b class="req">*</b></span>
+                    <div class="mk-radios">
+                        <label class="mk-radio"><input type="radio" th:field="*{visible}" value="true"> Hiển thị</label>
+                        <label class="mk-radio"><input type="radio" th:field="*{visible}" value="false"> Ẩn</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mk-form-actions">
+                <a class="btn btn-ghost" th:href="${creating} ? @{/marketing/feedbacks} : @{|/marketing/feedbacks/${feedback.id}|}">Hủy</a>
+                <button type="submit" th:text="${creating} ? 'Tạo phản hồi' : 'Lưu thay đổi'">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>

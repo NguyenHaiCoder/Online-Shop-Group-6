@@ -5,9 +5,9 @@
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
     <div class="staff-content" id="content">
-        <header th:replace="~{fragments/staff-menu :: top('Đơn hàng')}"></header>
+        <header th:replace="~{fragments/staff-menu :: top(${listTitle != null ? listTitle : 'Đơn hàng'})}"></header>
         <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="filters" method="get" th:action="@{/sales/orders}">
+        <form class="filters order-filters" method="get" th:action="@{/sales/orders}">
             <input type="date" name="from" th:value="${param.from != null ? param.from[0] : ''}">
             <input type="date" name="to" th:value="${param.to != null ? param.to[0] : ''}">
             <input type="search" name="keyword" placeholder="Mã đơn hoặc tên khách" th:value="${param.keyword != null ? param.keyword[0] : ''}">
@@ -38,10 +38,10 @@
                 <tbody>
                 <tr th:if="${page == null || page.totalElements == 0}"><td colspan="6" class="empty">Không có đơn hàng.</td></tr>
                 <tr th:if="${page != null}" th:each="row : ${page.content}">
-                    <td><a th:href="@{|/sales/orders/${row.id}|}" th:text="${row.id}">1</a></td>
+                    <td><a th:href="@{|/sales/orders/${row.id}|}" th:text="${row.code}">OD000001</a></td>
                     <td th:text="${#temporals.format(row.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                    <td th:text="${row.customer != null ? row.customer.fullName : ''}"></td>
-                    <td class="wrap" th:text="${row.items == null || row.items.empty ? '' : row.items[0].productName + (row.items.size() > 1 ? ' và ' + (row.items.size() - 1) + ' SP khác' : '')}"></td>
+                    <td th:text="${row.customerName}"></td>
+                    <td class="wrap" th:text="${row.productSummary}"></td>
                     <td><span th:replace="~{fragments/header :: vnd(${row.totalAmount})}">0</span></td>
                     <td><span th:replace="~{fragments/header :: orderStatus(${row.status})}"></span></td>
                 </tr>

@@ -1,65 +1,83 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/header :: head('Sản phẩm')}"></head>
+<head th:replace="~{fragments/header :: head('Chi tiết sản phẩm')}"></head>
 <body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
 <div class="staff-shell">
     <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
-    <div class="staff-content" id="content" th:with="creating=${#strings.endsWith(#request.requestURI, '/new')}">
-        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm sản phẩm' : 'Chi tiết sản phẩm')}"></header>
+    <div class="staff-content" id="content">
+        <!--/* PR03 Chi tiet san pham */-->
+        <header th:replace="~{fragments/staff-menu :: top('Chi tiết sản phẩm')}"></header>
+        <div class="mk-bar">
+            <a class="mk-back" th:href="@{/marketing/products}"><span th:replace="~{fragments/marketing :: icon('back')}"></span>Quay lại danh sách</a>
+            <div class="mk-actions">
+                <a class="btn" th:href="@{|/marketing/products/${product.id}/edit|}"><span th:replace="~{fragments/marketing :: icon('edit')}"></span>Chỉnh sửa</a>
+                <button th:if="${product.visible}" type="button" class="mk-outline" data-open="hide-product"><span th:replace="~{fragments/marketing :: icon('eye-off')}"></span>Ẩn sản phẩm</button>
+                <form th:unless="${product.visible}" th:action="@{|/marketing/products/${product.id}/toggle|}" method="post">
+                    <input type="hidden" name="from" value="detail">
+                    <button type="submit" class="mk-outline"><span th:replace="~{fragments/marketing :: icon('eye')}"></span>Hiện sản phẩm</button>
+                </form>
+            </div>
+        </div>
         <div th:replace="~{fragments/header :: messages}"></div>
-        <form class="card form-grid" th:object="${form}" method="post" enctype="multipart/form-data"
-              th:action="${creating} ? @{/marketing/products} : @{|${#request.requestURI}|}">
-            <img th:if="${product != null && product.thumbnail != null}" th:src="${product.thumbnail}" alt="" style="max-width:240px">
-            <label class="field">Ảnh đại diện
-                <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp">
-            </label>
-            <div class="gallery" th:if="${product != null}">
-                <figure th:each="image : ${product.images}">
-                    <img th:src="${image.imageUrl}" alt="">
-                    <label><input type="checkbox" name="deleteImageIds" th:value="${image.id}"> Xóa</label>
-                </figure>
+
+        <section class="card mk-hero">
+            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="">
+            <div class="mk-hero-body">
+                <span class="mk-code" th:text="${product.code}">KB001</span>
+                <h2><span th:text="${product.name}">Tên sản phẩm</span><span th:replace="~{fragments/header :: visibility(${product.visible})}"></span></h2>
+                <p class="muted" th:text="|Danh mục: ${product.categoryName != null ? product.categoryName : '—'}|">Danh mục</p>
             </div>
-            <label class="field">Ảnh đính kèm
-                <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple>
-            </label>
-            <label class="field">Danh mục
-                <select th:field="*{categoryId}">
-                    <option value="">Chọn</option>
-                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
-                </select>
-            </label>
-            <label class="field">Tên
-                <input th:field="*{name}" required maxlength="255">
-                <small class="field-error" th:errors="*{name}"></small>
-            </label>
-            <label class="field">Tóm tắt
-                <textarea th:field="*{briefInfo}" maxlength="500" rows="3"></textarea>
-            </label>
-            <label class="field">Mô tả
-                <textarea th:field="*{description}" required rows="8"></textarea>
-                <small class="field-error" th:errors="*{description}"></small>
-            </label>
-            <label class="field">Tồn kho
-                <input type="number" th:field="*{stockQuantity}" required min="0">
-                <small class="field-error" th:errors="*{stockQuantity}"></small>
-            </label>
-            <label class="field">Giá niêm yết
-                <input type="number" th:field="*{originalPrice}" required min="0" step="1">
-                <small class="field-error" th:errors="*{originalPrice}"></small>
-            </label>
-            <label class="field">Giá khuyến mãi
-                <input type="number" th:field="*{salePrice}" min="0" step="1">
-                <small class="field-error" th:errors="*{salePrice}"></small>
-            </label>
-            <div class="checks">
-                <label><input type="checkbox" th:field="*{featured}"> Nổi bật</label>
-                <label><input type="checkbox" th:field="*{visible}"> Hiển thị</label>
+        </section>
+
+        <div class="mk-grid">
+            <div>
+                <section class="card mk-card">
+                    <h2>Thông tin sản phẩm</h2>
+                    <table class="mk-kv">
+                        <tr><td>Mã sản phẩm</td><td th:text="${product.code}"></td></tr>
+                        <tr><td>Tên sản phẩm</td><td th:text="${product.name}"></td></tr>
+                        <tr><td>Danh mục</td><td th:text="${product.categoryName}"></td></tr>
+                        <tr><td>Giá bán</td><td><strong><span th:replace="~{fragments/header :: vnd(${product.currentPrice})}"></span></strong></td></tr>
+                        <tr><td>Số lượng còn bán</td><td th:text="${product.stockQuantity}"></td></tr>
+                    </table>
+                </section>
+                <section class="card mk-card">
+                    <h2>Hình ảnh</h2>
+                    <div class="mk-gallery">
+                        <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="">
+                        <img th:each="url : ${product.images.values()}" th:src="${url}" alt="">
+                    </div>
+                </section>
             </div>
-            <div class="form-actions">
-                <button type="submit" th:text="${creating} ? 'Tạo' : 'Lưu'">Lưu</button>
-                <a class="btn btn-ghost" th:href="@{/marketing/products}">Quay lại</a>
+            <div>
+                <section class="card mk-card">
+                    <h2>Nội dung</h2>
+                    <p class="mk-label">Mô tả ngắn</p>
+                    <p class="mk-text" th:text="${product.briefInfo}"></p>
+                    <p class="mk-label">Mô tả đầy đủ</p>
+                    <p class="mk-text" th:text="${product.description}"></p>
+                    <p class="mk-label">Thông số kỹ thuật</p>
+                    <ul class="mk-spec-list">
+                        <li th:each="spec : ${product.specifications}" th:text="${spec}"></li>
+                    </ul>
+                </section>
+                <section class="card mk-card">
+                    <h2>Thông tin quản lý</h2>
+                    <table class="mk-kv">
+                        <tr><td>Ngày tạo</td><td th:text="${#temporals.format(product.createdAt, 'dd/MM/yyyy')}"></td></tr>
+                        <tr><td>Ngày cập nhật</td><td th:text="${#temporals.format(product.updatedAt, 'dd/MM/yyyy')}"></td></tr>
+                    </table>
+                </section>
             </div>
-        </form>
+        </div>
+
+        <!--/* PR05 Xac nhan an san pham */-->
+        <th:block th:if="${product.visible}">
+            <div th:replace="~{fragments/marketing :: hideModal('hide-product', 'Ẩn sản phẩm?', ${product.name},
+                    'Sản phẩm sẽ không xuất hiện trên website mua sắm. Thông tin trong các đơn đã đặt vẫn được giữ nguyên.',
+                    @{|/marketing/products/${product.id}/toggle|}, 'detail', 'Ẩn sản phẩm')}"></div>
+        </th:block>
     </div>
 </div>
 <div th:replace="~{fragments/header :: modals('')}"></div>

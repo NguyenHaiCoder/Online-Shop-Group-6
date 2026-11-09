@@ -9,15 +9,15 @@
         <div th:replace="~{fragments/header :: messages}"></div>
         <article class="card stack">
             <p class="eyebrow"><a th:href="@{/sales/orders}">Đơn hàng</a></p>
-            <h2 th:text="|Đơn #${order.id}|">Đơn</h2>
+            <h2 th:text="|Đơn ${order.code}|">Đơn</h2>
             <p>
                 <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span>
                 · <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
             </p>
-            <p>Khách: <span th:text="${order.customer != null ? order.customer.fullName : ''}"></span>
-                · <span th:text="${order.customer != null ? order.customer.email : ''}"></span>
-                · <span th:text="${order.customer != null ? order.customer.mobile : ''}"></span></p>
-            <p>Sale phụ trách: <span th:text="${order.assignedSale != null ? order.assignedSale.fullName : 'Chưa phân công'}"></span></p>
+            <p>Khách: <span th:text="${order.customerName}"></span>
+                · <span th:text="${order.customerEmail}"></span>
+                · <span th:text="${order.customerMobile}"></span></p>
+            <p>Sale phụ trách: <span th:text="${order.saleName}"></span></p>
             <h3>Người nhận</h3>
             <p th:text="${order.receiverName}"></p>
             <p><span th:replace="~{fragments/header :: gender(${order.receiverGender})}"></span>
@@ -30,11 +30,11 @@
                     <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
                     <tbody>
                     <tr th:each="item : ${order.items}">
-                        <td class="wrap">
-                            <img class="thumb-sm" th:if="${item.product != null && item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="">
+                        <td class="product-line">
+                            <img class="thumb-sm" th:if="${item.thumbnail != null}" th:src="${item.thumbnail}" alt="">
                             <span th:text="${item.productName}"></span>
                         </td>
-                        <td th:text="${item.product != null && item.product.category != null ? item.product.category.name : ''}"></td>
+                        <td th:text="${item.categoryName}"></td>
                         <td><span th:replace="~{fragments/header :: vnd(${item.unitPrice})}">0</span></td>
                         <td th:text="${item.quantity}">1</td>
                         <td><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></td>
@@ -42,19 +42,20 @@
                     </tbody>
                 </table>
             </div>
+            <p>Phí vận chuyển: <span th:replace="~{fragments/header :: vnd(${order.shippingFee})}">0</span>
+                · Thanh toán: <span th:text="${order.paymentMethod}">COD</span></p>
             <p>Tổng tiền: <strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
         </article>
 
-        <form class="card form-grid" th:action="@{|/sales/orders/${order.id}|}" method="post"
-              th:if="${order.status.name() != 'SUCCESS' && order.status.name() != 'CANCELLED'}">
+        <form class="card order-form" th:action="@{|/sales/orders/${order.id}|}" method="post"
+              th:if="${order.updatable}">
             <h2>Cập nhật đơn</h2>
             <label class="field">Trạng thái
                 <select name="status">
-                    <option th:value="${order.status}" selected="selected" th:text="${order.status.name()}">Hiện tại</option>
-                    <option th:if="${order.status.name() == 'SUBMITTED'}" value="CONFIRMED">Đã xác nhận</option>
-                    <option th:if="${order.status.name() == 'CONFIRMED'}" value="SHIPPING">Đang giao</option>
-                    <option th:if="${order.status.name() == 'SHIPPING'}" value="SUCCESS">Hoàn tất</option>
-                    <option value="CANCELLED">Đã hủy</option>
+                    <option th:value="${order.status}" selected="selected"
+                            th:text="${order.status.name() == 'SUBMITTED' ? 'Đã gửi đơn' : (order.status.name() == 'CONFIRMED' ? 'Đã xác nhận' : (order.status.name() == 'SHIPPING' ? 'Đang giao' : (order.status.name() == 'SUCCESS' ? 'Hoàn tất' : 'Đã hủy')))}">Hiện tại</option>
+                    <option th:each="st : ${order.nextStatuses}" th:value="${st}"
+                            th:text="${st.name() == 'SUBMITTED' ? 'Đã gửi đơn' : (st.name() == 'CONFIRMED' ? 'Đã xác nhận' : (st.name() == 'SHIPPING' ? 'Đang giao' : (st.name() == 'SUCCESS' ? 'Hoàn tất' : 'Đã hủy')))}">Tiếp theo</option>
                 </select>
             </label>
             <label class="field">Ghi chú nội bộ
@@ -62,21 +63,29 @@
             </label>
             <button type="submit">Lưu cập nhật</button>
         </form>
-        <section class="card" th:if="${order.status.name() == 'SUCCESS' || order.status.name() == 'CANCELLED'}">
+        <section class="card" th:if="${!order.updatable}">
             <h2>Ghi chú nội bộ</h2>
             <p th:text="${order.saleNote != null ? order.saleNote : 'Không có ghi chú.'}"></p>
         </section>
 
-        <form class="card form-grid" sec:authorize="hasRole('SALE_MANAGER')" th:action="@{|/sales/orders/${order.id}/assign|}" method="post">
+        <form class="card order-form" sec:authorize="hasRole('SALE_MANAGER')" th:action="@{|/sales/orders/${order.id}/assign|}" method="post">
             <h2>Giao cho Sale</h2>
             <label class="field">Sale
                 <select name="saleId" required>
                     <option value="">Chọn</option>
-                    <option th:each="sale : ${sales != null ? sales : T(java.util.Collections).emptyList()}" th:value="${sale.id}" th:text="${sale.fullName}" th:selected="${order.assignedSale != null && order.assignedSale.id == sale.id}"></option>
+                    <option th:each="sale : ${sales != null ? sales : T(java.util.Collections).emptyList()}" th:value="${sale.id}" th:text="${sale.fullName}" th:selected="${order.assignedSaleId != null && order.assignedSaleId == sale.id}"></option>
                 </select>
             </label>
             <button type="submit">Giao đơn</button>
         </form>
+        <section class="card" th:if="${order.histories != null && !order.histories.empty}">
+            <h2>Lịch sử đơn</h2>
+            <p th:each="line : ${order.histories}">
+                <span th:text="${#temporals.format(line.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                — <span th:text="${line.content}"></span>
+                <span th:if="${line.actorName != null}" th:text="| (${line.actorName})|"></span>
+            </p>
+        </section>
         <p><a class="btn btn-ghost" th:href="@{/sales/orders}">Quay lại danh sách</a></p>
     </div>
 </div>

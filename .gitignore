@@ -44,3 +44,5 @@ uploads/
 target-local-run.log
 
 .ui-review/
+
+merge-*.log

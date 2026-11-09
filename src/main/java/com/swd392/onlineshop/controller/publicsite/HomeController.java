@@ -1,5 +1,5 @@
 package com.swd392.onlineshop.controller.publicsite;
-import com.swd392.onlineshop.dto.request.ProductFilter;
+import com.swd392.onlineshop.dto.request.CatalogFilter;
 import com.swd392.onlineshop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,7 +13,7 @@ public class HomeController {
         model.addAttribute("productCategories",home.categories()); model.addAttribute("sliders",home.sliders());
         return "public/home/home";
     }
-    @GetMapping("/products") public String products(@ModelAttribute ProductFilter filter,@RequestParam(defaultValue="1") int page,Model model) {
+    @GetMapping("/products") public String products(@ModelAttribute CatalogFilter filter,@RequestParam(defaultValue="1") int page,Model model) {
         model.addAttribute("productCategories",shop.categories()); model.addAttribute("page",shop.products(filter,page)); return "public/products/product-list";
     }
     @GetMapping("/products/{id}") public String product(@PathVariable Long id,Model model) { model.addAttribute("product",shop.product(id)); return "public/products/product-details"; }

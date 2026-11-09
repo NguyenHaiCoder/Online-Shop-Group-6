@@ -34,7 +34,7 @@ class ShopPageIntegrationTests {
     }
     @Test void homeLoadsRealVisibleRecordsAndUsesSellingPrice() throws Exception {
         assertThat(shop.home().featuredProducts()).extracting("code").contains("UI-KEYBOARD").doesNotContain("UI-HIDDEN");
-        assertThat(shop.home().featuredProducts().get(0).currentPrice()).isEqualByComparingTo("690000");
+        assertThat(shop.home().featuredProducts().get(0).getCurrentPrice()).isEqualByComparingTo("690000");
         mvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("UI-KEYBOARD")));
     }
     @Test void productNavigationFiltersAndRejectsHiddenDetails() throws Exception {

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(${creating} ? 'Thêm sản phẩm' : 'Chỉnh sửa sản phẩm')}"></head>
+<body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <!--/* PR02 Them san pham, PR04 Chinh sua san pham */-->
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm sản phẩm' : 'Chỉnh sửa sản phẩm')}"></header>
+        <div class="mk-bar">
+            <p class="mk-sub" th:text="${creating} ? 'Tạo sản phẩm mới để hiển thị trên cửa hàng.' : |Cập nhật thông tin sản phẩm ${product.name} (${product.code})|">Mô tả</p>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <form th:object="${form}" method="post" enctype="multipart/form-data"
+              th:action="${creating} ? @{/marketing/products} : @{|/marketing/products/${product.id}|}">
+            <section class="card mk-form">
+                <h2>Thông tin sản phẩm</h2>
+                <div class="form-grid">
+                    <label class="field"><span>Mã sản phẩm <b class="req">*</b></span>
+                        <input th:field="*{code}" maxlength="50" required placeholder="Nhập mã sản phẩm (ví dụ: KB001)">
+                        <small class="field-error" th:errors="*{code}"></small>
+                    </label>
+                    <label class="field"><span>Tên sản phẩm <b class="req">*</b></span>
+                        <input th:field="*{name}" maxlength="255" required placeholder="Nhập tên sản phẩm (ví dụ: Bàn phím cơ Nova K68)">
+                        <small class="field-error" th:errors="*{name}"></small>
+                    </label>
+                    <label class="field"><span>Danh mục <b class="req">*</b></span>
+                        <select th:field="*{categoryId}" required>
+                            <option value="">Chọn danh mục</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                        <small class="field-error" th:errors="*{categoryId}"></small>
+                    </label>
+                    <label class="field"><span>Giá bán (₫) <b class="req">*</b></span>
+                        <input type="number" th:field="*{originalPrice}" min="0" step="1" required placeholder="Nhập giá bán (ví dụ: 690000)">
+                        <small class="field-error" th:errors="*{originalPrice}"></small>
+                    </label>
+                    <label class="field"><span>Số lượng còn bán <b class="req">*</b></span>
+                        <input type="number" th:field="*{stockQuantity}" min="0" step="1" required placeholder="Nhập số lượng (ví dụ: 25)">
+                        <small class="field-error" th:errors="*{stockQuantity}"></small>
+                    </label>
+                    <div class="field"><span>Trạng thái <b class="req">*</b></span>
+                        <div class="mk-radios">
+                            <label class="mk-radio"><input type="radio" th:field="*{visible}" value="true"> Hiển thị</label>
+                            <label class="mk-radio"><input type="radio" th:field="*{visible}" value="false"> Ẩn</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card mk-form">
+                <h2>Hình ảnh</h2>
+                <div class="form-grid">
+                    <div class="field"><span>Ảnh đại diện <b class="req">*</b></span>
+                        <div class="mk-current" th:if="${product != null && product.thumbnail != null}">
+                            <figure><img th:src="${product.thumbnail}" alt=""><figcaption>Ảnh hiện tại</figcaption></figure>
+                        </div>
+                        <label class="drop">
+                            <span th:text="${creating} ? 'Chọn ảnh đại diện' : 'Chọn ảnh mới nếu muốn thay'">Chọn ảnh</span><br>
+                            <small>JPG, PNG, WEBP • Tối đa 5 MB</small>
+                            <input type="file" name="thumbnailFile" accept="image/jpeg,image/png,image/webp" th:required="${creating}">
+                        </label>
+                        <small class="field-error" th:errors="*{thumbnailFile}"></small>
+                    </div>
+                    <div class="field"><span>Ảnh gallery</span>
+                        <div class="mk-current" th:if="${product != null && !product.images.isEmpty()}">
+                            <figure th:each="image : ${product.images}">
+                                <img th:src="${image.value}" alt="">
+                                <label><input type="checkbox" name="deleteImageIds" th:value="${image.key}"> Xóa ảnh</label>
+                            </figure>
+                        </div>
+                        <label class="drop">
+                            <span>Chọn một hoặc nhiều ảnh</span><br>
+                            <small>JPG, PNG, WEBP • Tối đa 5 MB/ảnh</small>
+                            <input type="file" name="galleryFiles" accept="image/jpeg,image/png,image/webp" multiple>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card mk-form">
+                <h2>Nội dung</h2>
+                <div class="form-grid">
+                    <div>
+                        <label class="field"><span>Mô tả ngắn <b class="req">*</b></span>
+                            <input th:field="*{briefInfo}" maxlength="500" required placeholder="Nhập mô tả ngắn (ví dụ: Bàn phím nhỏ gọn cho công việc)">
+                            <small class="field-error" th:errors="*{briefInfo}"></small>
+                        </label>
+                        <label class="field"><span>Mô tả đầy đủ <b class="req">*</b></span>
+                            <textarea th:field="*{description}" rows="6" required placeholder="Nhập mô tả đầy đủ về sản phẩm..."></textarea>
+                            <small class="field-error" th:errors="*{description}"></small>
+                        </label>
+                    </div>
+                    <label class="field"><span>Thông số kỹ thuật <b class="req">*</b></span>
+                        <textarea th:field="*{specifications}" rows="8" required
+                                  placeholder="Kết nối: USB-C&#10;Số phím: 68 phím&#10;Màu sắc: Trắng xám"></textarea>
+                        <small class="hint">Mỗi dòng một thông số, dạng Tên: Giá trị.</small>
+                        <small class="field-error" th:errors="*{specifications}"></small>
+                    </label>
+                </div>
+            </section>
+
+            <div class="mk-form-actions">
+                <a class="btn btn-ghost" th:href="${creating} ? @{/marketing/products} : @{|/marketing/products/${product.id}|}">Hủy</a>
+                <button type="submit" th:text="${creating} ? 'Tạo sản phẩm' : 'Lưu thay đổi'">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>

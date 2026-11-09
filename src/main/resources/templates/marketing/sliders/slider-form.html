@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/header :: head(${creating} ? 'Thêm slider' : 'Chỉnh sửa slider')}"></head>
+<body class="staff-body">
+<link rel="stylesheet" th:href="@{/css/marketing.css}">
+<div class="staff-shell">
+    <aside th:replace="~{fragments/staff-menu :: menu}"></aside>
+    <div class="staff-content" id="content">
+        <!--/* MS02 Them slider, MS04 Chinh sua slider */-->
+        <header th:replace="~{fragments/staff-menu :: top(${creating} ? 'Thêm slider' : 'Chỉnh sửa slider')}"></header>
+        <div class="mk-bar">
+            <p class="mk-sub" th:text="${creating} ? 'Tạo slider mới để hiển thị trên trang chủ.' : |Cập nhật slider ${slider.title}|">Mô tả</p>
+        </div>
+        <div th:replace="~{fragments/header :: messages}"></div>
+
+        <form th:object="${form}" method="post" enctype="multipart/form-data"
+              th:action="${creating} ? @{/marketing/sliders} : @{|/marketing/sliders/${slider.id}|}">
+            <section class="card mk-form">
+                <label class="field"><span>Tiêu đề <b class="req">*</b></span>
+                    <input th:field="*{title}" maxlength="255" required placeholder="Nhập tiêu đề slider">
+                    <small class="field-error" th:errors="*{title}"></small>
+                </label>
+                <div class="field"><span>Ảnh banner <b class="req">*</b></span>
+                    <div class="mk-current" th:if="${slider != null}">
+                        <figure><img class="mk-wide" th:src="${slider.image}" alt=""><figcaption>Ảnh hiện tại</figcaption></figure>
+                    </div>
+                    <label class="drop">
+                        <span th:text="${creating} ? 'Chọn ảnh banner' : 'Chọn ảnh mới nếu muốn thay'">Chọn ảnh</span><br>
+                        <small>Tỉ lệ ảnh gợi ý 3:1 (ví dụ: 1440 x 480 px). JPG, PNG, WEBP, tối đa 5 MB.</small>
+                        <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" th:required="${creating}">
+                    </label>
+                    <small class="field-error" th:errors="*{imageFile}"></small>
+                </div>
+                <label class="field"><span>Nội dung ngắn <b class="req">*</b></span>
+                    <textarea th:field="*{notes}" rows="3" maxlength="500" required placeholder="Nhập nội dung ngắn (mô tả ngắn cho slider)"></textarea>
+                    <small class="field-error" th:errors="*{notes}"></small>
+                </label>
+                <div class="form-grid">
+                    <label class="field"><span>Nhãn nút <b class="req">*</b></span>
+                        <input th:field="*{buttonLabel}" maxlength="100" required placeholder="Nhập nhãn nút (ví dụ: Khám phá sản phẩm)">
+                        <small class="field-error" th:errors="*{buttonLabel}"></small>
+                    </label>
+                    <label class="field"><span>Liên kết đích <b class="req">*</b></span>
+                        <input th:field="*{backlink}" maxlength="255" required placeholder="Nhập liên kết đích (ví dụ: /products)">
+                        <small class="field-error" th:errors="*{backlink}"></small>
+                    </label>
+                    <label class="field"><span>Thứ tự <b class="req">*</b></span>
+                        <input type="number" th:field="*{displayOrder}" min="0" max="9999" step="1" required placeholder="Nhập thứ tự hiển thị">
+                        <small class="field-error" th:errors="*{displayOrder}"></small>
+                    </label>
+                    <div class="field"><span>Trạng thái <b class="req">*</b></span>
+                        <div class="mk-radios">
+                            <label class="mk-radio"><input type="radio" th:field="*{visible}" value="true"> Hiển thị</label>
+                            <label class="mk-radio"><input type="radio" th:field="*{visible}" value="false"> Ẩn</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="mk-form-actions">
+                <a class="btn btn-ghost" th:href="${creating} ? @{/marketing/sliders} : @{|/marketing/sliders/${slider.id}|}">Hủy</a>
+                <button type="submit" th:text="${creating} ? 'Tạo slider' : 'Lưu thay đổi'">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="~{fragments/header :: modals('')}"></div>
+<script th:src="@{/js/ui.js}"></script>
+</body>
+</html>
