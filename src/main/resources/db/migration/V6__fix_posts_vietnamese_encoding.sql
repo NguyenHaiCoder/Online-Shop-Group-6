@@ -22,3 +22,4 @@ SET title = N'Cách chọn chuột không dây phù hợp với nhu cầu làm v
     brief_info = N'Tìm hiểu cách lựa chọn form chuột, DPI và chuẩn kết nối bluetooth hoặc wireless 2.4GHz phù hợp.',
     content = N'<h3>Tiêu chí chọn chuột không dây văn phòng</h3><p>Form cầm và độ phân giải DPI là yếu tố quan trọng nhất để bạn thao tác chuột chính xác và không bị mỏi tay.</p><h4>1. Kích thước và trọng lượng phù hợp</h4><p>Nên chọn kích thước vừa vặn với kích cỡ bàn tay (nhỏ, vừa hoặc lớn) và trọng lượng nhẹ để di chuyển linh hoạt.</p><h4>2. Độ nhạy DPI có thể điều chỉnh</h4><p>Dải DPI từ 800 đến 2400 giúp bạn dễ dàng tùy chỉnh tốc độ chuột cho các tác vụ văn phòng hoặc thiết kế đồ họa.</p><h4>3. Cảm biến quang học hoạt động trên nhiều bề mặt</h4><p>Cảm biến chất lượng cao giúp chuột lướt mượt mà trên mặt bàn gỗ, da hay mặt kính mà không cần lót chuột phức tạp.</p>'
 WHERE id = 15 OR code = 'BV000004';
+
