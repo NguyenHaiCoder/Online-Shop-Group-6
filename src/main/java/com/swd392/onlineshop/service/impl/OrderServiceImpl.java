@@ -385,12 +385,23 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void cancelOrder(Long orderId, Long userId) {
+        cancelOrder(orderId, userId, null);
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = getCustomerOrderDetails(orderId, userId);
         if (order.getStatus() != OrderStatus.SUBMITTED) {
             throw new BusinessException("Chỉ được hủy đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
         }
 
         order.setStatus(OrderStatus.CANCELLED);
+        if (cancelReason != null && !cancelReason.isBlank()) {
+            String existingNote = order.getSaleNote();
+            String cancelNote = "Khách hủy đơn. Lý do: " + cancelReason.trim();
+            order.setSaleNote(existingNote != null && !existingNote.isBlank() ? (existingNote + " | " + cancelNote) : cancelNote);
+        }
 
         for (OrderItem item : order.getItems()) {
             if (item.getProduct() != null) {
@@ -404,6 +415,80 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
         customerService.refreshStatus(order.getCustomer());
+    }
+
+    @Override
+    @Transactional
+    public void editCustomerOrder(Long orderId, Long userId, com.swd392.onlineshop.dto.request.OrderEditRequest form) {
+        Order order = getCustomerOrderDetails(orderId, userId);
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new BusinessException("Chỉ được sửa đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
+        }
+
+        if (form.getReceiverName() != null && !form.getReceiverName().isBlank()) {
+            order.setReceiverName(form.getReceiverName().trim());
+        }
+        if (form.getReceiverMobile() != null && !form.getReceiverMobile().isBlank()) {
+            order.setReceiverMobile(form.getReceiverMobile().trim());
+        }
+        if (form.getReceiverEmail() != null && !form.getReceiverEmail().isBlank()) {
+            order.setReceiverEmail(form.getReceiverEmail().trim());
+        }
+        if (form.getReceiverAddress() != null && !form.getReceiverAddress().isBlank()) {
+            order.setReceiverAddress(form.getReceiverAddress().trim());
+        }
+        order.setNote(form.getNote() != null ? form.getNote().trim() : null);
+
+        java.util.Map<Long, Integer> qtyMap = new java.util.HashMap<>();
+        if (form.getItemIds() != null && form.getQuantities() != null) {
+            for (int i = 0; i < form.getItemIds().size(); i++) {
+                if (i < form.getQuantities().size()) {
+                    qtyMap.put(form.getItemIds().get(i), form.getQuantities().get(i));
+                }
+            }
+        }
+
+        java.util.Iterator<OrderItem> it = order.getItems().iterator();
+        BigDecimal subtotal = BigDecimal.ZERO;
+        while (it.hasNext()) {
+            OrderItem item = it.next();
+            if (!qtyMap.containsKey(item.getId()) || qtyMap.get(item.getId()) <= 0) {
+                // Bi bo khoi don hang -> hoan lai ton kho
+                if (item.getProduct() != null) {
+                    Product p = productRepository.findByIdWithLock(item.getProduct().getId()).orElse(null);
+                    if (p != null) {
+                        p.setStockQuantity(p.getStockQuantity() + item.getQuantity());
+                        productRepository.save(p);
+                    }
+                }
+                it.remove();
+            } else {
+                int newQty = qtyMap.get(item.getId());
+                int oldQty = item.getQuantity();
+                int diff = newQty - oldQty;
+                if (diff != 0 && item.getProduct() != null) {
+                    Product p = productRepository.findByIdWithLock(item.getProduct().getId()).orElse(null);
+                    if (p != null) {
+                        if (diff > 0 && p.getStockQuantity() < diff) {
+                            throw new BusinessException("Sản phẩm '" + item.getProductName() + "' chỉ còn " + p.getStockQuantity() + " trong kho, không đủ số lượng tăng thêm.");
+                        }
+                        p.setStockQuantity(p.getStockQuantity() - diff);
+                        productRepository.save(p);
+                    }
+                }
+                item.setQuantity(newQty);
+                subtotal = subtotal.add(item.getUnitPrice().multiply(BigDecimal.valueOf(newQty)));
+            }
+        }
+
+        if (order.getItems().isEmpty()) {
+            throw new BusinessException("Đơn hàng phải có ít nhất một sản phẩm.");
+        }
+
+        BigDecimal shippingFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
+        order.setTotalAmount(subtotal.add(shippingFee));
+
+        orderRepository.save(order);
     }
 
     private void assignRoundRobinSale(Order order) {

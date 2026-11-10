@@ -1,61 +1,313 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head('Chi tiết đơn hàng')}"></head>
-<body>
+<head th:replace="~{fragments/header :: head('Chi tiết đơn hàng ' + (${order.code != null ? order.code : ('#' + order.id)}))}"></head>
+<body class="my-orders-body order-detail-bg">
 <div th:replace="~{fragments/header :: bar}"></div>
-<main class="page" id="content">
+
+<main class="page order-detail-page" id="content">
     <div th:replace="~{fragments/header :: messages}"></div>
-    <div class="layout">
-        <article class="card">
-            <p class="eyebrow"><a th:href="@{/my-orders}">Đơn hàng của tôi</a></p>
-            <h1 th:text="|Đơn #${order.id}|">Đơn</h1>
-            <p>Đặt lúc <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
-                · <span th:replace="~{fragments/header :: orderStatus(${order.status})}"></span></p>
-            <p>Tổng tiền: <strong><span th:replace="~{fragments/header :: vnd(${order.totalAmount})}">0</span></strong></p>
-            <h2>Người nhận</h2>
-            <p th:text="${order.receiverName}"></p>
-            <p><span th:replace="~{fragments/header :: gender(${order.receiverGender})}"></span> · <span th:text="${order.receiverMobile}"></span> · <span th:text="${order.receiverEmail}"></span></p>
-            <p th:text="${order.receiverAddress}"></p>
-            <p th:if="${order.note != null}" th:text="|Ghi chú: ${order.note}|"></p>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr></thead>
-                    <tbody>
-                    <tr th:each="item : ${order.items}">
-                        <td class="wrap">
-                            <img class="thumb-sm" th:if="${item.product != null && item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="">
-                            <span th:text="${item.productName}">Sản phẩm</span>
-                        </td>
-                        <td th:text="${item.product != null && item.product.category != null ? item.product.category.name : ''}"></td>
-                        <td><span th:replace="~{fragments/header :: vnd(${item.unitPrice})}">0</span></td>
-                        <td th:text="${item.quantity}">1</td>
-                        <td><span th:replace="~{fragments/header :: vnd(${item.subtotal})}">0</span></td>
-                        <td class="row-actions">
-                            <form th:if="${item.product != null}" class="inline" th:action="@{/cart/add}" method="post">
-                                <input type="hidden" name="productId" th:value="${item.product.id}">
-                                <input type="hidden" name="quantity" th:value="${item.quantity}">
-                                <button class="btn-ghost" type="submit">Mua lại</button>
-                            </form>
-                            <a th:if="${item.product != null}" th:href="@{/feedback(productId=${item.product.id})}">Phản hồi</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+
+    <div class="order-detail-container">
+        <!-- Breadcrumb nhỏ -->
+        <div class="order-detail-breadcrumb">
+            <a th:href="@{/my-orders}" class="bc-link">Đơn hàng của tôi</a>
+            <span class="bc-sep">/</span>
+            <span class="bc-current" th:text="${order.code != null ? order.code : ('#' + order.id)}">OD000125</span>
+        </div>
+
+        <!-- Header hàng trên: Nút quay lại + Tiêu đề đơn hàng + Badge trạng thái -->
+        <div class="order-detail-top-bar">
+            <a class="btn-back-outline" th:href="@{/my-orders}">
+                <span class="back-arrow">←</span>
+                <span>Quay lại danh sách đơn hàng</span>
+            </a>
+            <div class="order-title-group">
+                <h1 class="order-code-title" th:text="|Đơn hàng ${order.code != null ? order.code : ('#' + order.id)}|">Đơn hàng OD000125</h1>
+                <span class="status-pill" th:classappend="${'pill-' + order.status.name()}" th:switch="${order.status.name()}">
+                    <th:block th:case="'SUBMITTED'">Đã gửi đơn</th:block>
+                    <th:block th:case="'CONFIRMED'">Đã xác nhận</th:block>
+                    <th:block th:case="'SHIPPING'">Đang giao</th:block>
+                    <th:block th:case="'SUCCESS'">Hoàn tất</th:block>
+                    <th:block th:case="*">Đã hủy</th:block>
+                </span>
             </div>
-            <div class="form-actions" th:if="${order.status.name() == 'SUBMITTED'}">
-                <form th:action="@{|/my-orders/${order.id}/update|}" method="post">
-                    <button type="submit">Sửa đơn</button>
-                </form>
-                <form th:action="@{|/my-orders/${order.id}/cancel|}" method="post">
-                    <button class="btn-danger" type="submit" data-confirm="Hủy đơn này?">Hủy đơn</button>
-                </form>
+        </div>
+
+        <!-- Card Tiến trình đơn hàng (Stepper 4 bước) -->
+        <div class="order-card order-stepper-card" th:classappend="${'step-state-' + order.status.name().toLowerCase()}">
+            <div class="stepper-track">
+                <!-- Bước 1: Đã gửi đơn -->
+                <div class="stepper-step" th:classappend="${order.status.name() != 'CANCELLED'} ? 'is-active is-completed' : 'is-cancelled'">
+                    <div class="step-circle">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="step-label">Đã gửi đơn</div>
+                </div>
+
+                <!-- Vạch nối 1 - 2 -->
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SUBMITTED' ? 'line-half' : (order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS' ? 'line-filled' : '')}"></div>
+
+                <!-- Bước 2: Đã xác nhận -->
+                <div class="stepper-step" th:classappend="${order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                    <div class="step-circle">
+                        <span th:if="${order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'}">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="step-label">Đã xác nhận</div>
+                </div>
+
+                <!-- Vạch nối 2 - 3 -->
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'line-filled' : ''"></div>
+
+                <!-- Bước 3: Đang giao -->
+                <div class="stepper-step" th:classappend="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                    <div class="step-circle">
+                        <span th:if="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'}">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="step-label">Đang giao</div>
+                </div>
+
+                <!-- Vạch nối 3 - 4 -->
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SUCCESS'} ? 'line-filled' : ''"></div>
+
+                <!-- Bước 4: Hoàn tất -->
+                <div class="stepper-step" th:classappend="${order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                    <div class="step-circle">
+                        <span th:if="${order.status.name() == 'SUCCESS'}">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="step-label">Hoàn tất</div>
+                </div>
             </div>
-        </article>
-        <aside th:replace="~{fragments/public-sider :: sider('products')}"></aside>
+        </div>
+
+        <!-- Card Thông tin nhận hàng -->
+        <div class="order-card order-receiver-card">
+            <h3 class="card-box-heading">Thông tin nhận hàng</h3>
+            <div class="receiver-info-grid">
+                <div class="receiver-meta-item">
+                    <svg class="meta-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="meta-val font-semibold" th:text="${order.receiverName}">Nguyễn Minh Anh</span>
+                </div>
+                <div class="receiver-meta-item">
+                    <svg class="meta-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <span class="meta-val" th:text="${order.receiverMobile}">0901 234 567</span>
+                </div>
+                <div class="receiver-meta-item">
+                    <svg class="meta-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span class="meta-val" th:text="${order.receiverEmail}">minhanh@example.com</span>
+                </div>
+                <div class="receiver-meta-item">
+                    <svg class="meta-icon" viewBox="0 0 24 24" width="18" height="18" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="meta-val" th:text="${order.receiverAddress}">Khu đô thị Hòa Lạc, Hà Nội</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bố cục 2 cột: Cột trái (Bảng sản phẩm, ghi chú, nút hành động) - Cột phải (Tóm tắt, phương thức thanh toán) -->
+        <div class="order-content-layout">
+            <!-- CỘT TRÁI -->
+            <div class="order-left-column">
+                <!-- Bảng sản phẩm -->
+                <div class="order-card order-items-card">
+                    <table class="detail-order-table">
+                        <thead>
+                            <tr>
+                                <th class="col-product">Sản phẩm</th>
+                                <th class="col-price">Đơn giá</th>
+                                <th class="col-quantity">Số lượng</th>
+                                <th class="col-subtotal">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.items}">
+                                <td class="col-product">
+                                    <div class="prod-entry">
+                                        <div class="prod-thumb-box">
+                                            <img th:if="${item.product != null and item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="" class="prod-img">
+                                            <div th:if="${item.product == null or item.product.thumbnail == null}" class="prod-img-placeholder">
+                                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="#94a3b8" stroke-width="2" fill="none">
+                                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="prod-info-block">
+                                            <div class="prod-code-sub" th:if="${item.productCode != null}" th:text="${item.productCode}">KB001</div>
+                                            <div class="prod-title" th:text="${item.productName}">Bàn phím cơ Nova K68</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="col-price">
+                                    <span th:text="|${#numbers.formatDecimal(item.unitPrice, 0, 'POINT', 0, 'COMMA')} đ|">690.000 đ</span>
+                                </td>
+                                <td class="col-quantity">
+                                    <span th:text="${item.quantity}">1</span>
+                                </td>
+                                <td class="col-subtotal">
+                                    <span th:text="|${#numbers.formatDecimal(item.subtotal, 0, 'POINT', 0, 'COMMA')} đ|">690.000 đ</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ghi chú đơn hàng (nếu có) -->
+                <div class="order-note-alert" th:if="${order.note != null and !order.note.isBlank()}">
+                    <span class="note-info-icon">ⓘ</span>
+                    <span class="note-info-text" th:text="${order.note}">Giao hàng trong giờ hành chính.</span>
+                </div>
+
+                <!-- Hàng nút Sửa đơn & Hủy đơn (chỉ hiển thị khi đơn ở trạng thái SUBMITTED) -->
+                <div class="order-action-buttons" th:if="${order.status.name() == 'SUBMITTED'}">
+                    <a class="btn-action-edit" th:href="@{|/my-orders/${order.id}/edit|}">Sửa đơn</a>
+                    <button type="button" class="btn-action-cancel" onclick="openCancelModal()">Hủy đơn</button>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI -->
+            <div class="order-right-column">
+                <!-- Card Tóm tắt đơn hàng -->
+                <div class="order-card order-summary-box-card">
+                    <h3 class="card-box-heading">Tóm tắt đơn hàng</h3>
+                    <div class="summary-meta-line">
+                        <span class="line-title" th:text="|Tạm tính (${order.items.size()} sản phẩm)|">Tạm tính (2 sản phẩm)</span>
+                        <span class="line-price" th:text="|${#numbers.formatDecimal(order.totalAmount.subtract(order.shippingFee != null ? order.shippingFee : 0), 0, 'POINT', 0, 'COMMA')} đ|">980.000 đ</span>
+                    </div>
+                    <div class="summary-meta-line">
+                        <span class="line-title">Phí vận chuyển</span>
+                        <span class="line-price" th:text="|${#numbers.formatDecimal(order.shippingFee != null ? order.shippingFee : 0, 0, 'POINT', 0, 'COMMA')} đ|">30.000 đ</span>
+                    </div>
+                    <div class="summary-card-divider"></div>
+                    <div class="summary-total-price-line">
+                        <span class="total-heading">Tổng thanh toán</span>
+                        <span class="total-big-val" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA')} đ|">1.010.000 đ</span>
+                    </div>
+                </div>
+
+                <!-- Card Phương thức thanh toán -->
+                <div class="order-card order-payment-box-card">
+                    <h3 class="card-box-heading">Phương thức thanh toán</h3>
+                    <div class="payment-option-display">
+                        <div class="payment-icon-wrap">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="#0284c7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                            </svg>
+                        </div>
+                        <span class="payment-option-text" th:text="${order.paymentMethod == 'COD' ? 'Thanh toán khi nhận hàng' : order.paymentMethod}">Thanh toán khi nhận hàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
+
+<!-- MODAL POPUP HỦY ĐƠN HÀNG (Ảnh 3) -->
+<div id="cancelOrderModal" class="cancel-modal-overlay" style="display: none;">
+    <div class="cancel-modal-dialog">
+        <!-- Nút đóng x -->
+        <button type="button" class="cancel-modal-close" onclick="closeCancelModal()" aria-label="Đóng">&times;</button>
+        
+        <!-- Icon cảnh báo tam giác vàng cam -->
+        <div class="cancel-alert-icon-wrapper">
+            <div class="cancel-alert-icon-circle">
+                <svg viewBox="0 0 24 24" width="34" height="34" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Tiêu đề modal -->
+        <h2 class="cancel-modal-title" th:text="|Hủy đơn hàng ${order.code != null ? order.code : ('#' + order.id)}?|">Hủy đơn hàng OD000125?</h2>
+
+        <!-- Phụ đề trạng thái -->
+        <div class="cancel-modal-subtitle">
+            <span>Đơn hàng đang ở trạng thái </span>
+            <span class="status-pill pill-SUBMITTED">Đã gửi đơn</span>
+            <span> . Bạn có chắc muốn hủy?</span>
+        </div>
+
+        <!-- Box tổng tiền thanh toán -->
+        <div class="cancel-modal-total-box">
+            <span class="total-box-label">Tổng thanh toán đơn hàng</span>
+            <span class="total-box-price" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA')} đ|">1.010.000 đ</span>
+        </div>
+
+        <!-- Form hủy đơn -->
+        <form th:action="@{|/my-orders/${order.id}/cancel|}" method="post" class="cancel-modal-form">
+            <label class="cancel-reason-label" for="cancelReason">Lý do hủy (không bắt buộc)</label>
+            <textarea id="cancelReason" name="cancelReason" class="cancel-reason-input" rows="3" placeholder="Nhập lý do hủy đơn hàng..."></textarea>
+
+            <div class="cancel-modal-btn-row">
+                <button type="button" class="btn-cancel-keep-order" onclick="closeCancelModal()">Giữ đơn hàng</button>
+                <button type="submit" class="btn-cancel-confirm-order">Xác nhận hủy đơn</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
+
+<script>
+function openCancelModal() {
+    const modal = document.getElementById('cancelOrderModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeCancelModal() {
+    const modal = document.getElementById('cancelOrderModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+// Đóng modal khi click ra ngoài vùng backdrop
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('cancelOrderModal');
+    if (e.target === modal) {
+        closeCancelModal();
+    }
+});
+
+// Đóng modal khi nhấn Escape
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCancelModal();
+    }
+});
+</script>
 <script th:src="@{/js/ui.js}"></script>
 </body>
 </html>

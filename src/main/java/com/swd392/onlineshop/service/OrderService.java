@@ -44,4 +44,8 @@ public interface OrderService {
     void prepareUpdateOrder(Long orderId, Long userId, HttpSession session);
 
     void cancelOrder(Long orderId, Long userId);
+
+    void cancelOrder(Long orderId, Long userId, String cancelReason);
+
+    void editCustomerOrder(Long orderId, Long userId, com.swd392.onlineshop.dto.request.OrderEditRequest form);
 }

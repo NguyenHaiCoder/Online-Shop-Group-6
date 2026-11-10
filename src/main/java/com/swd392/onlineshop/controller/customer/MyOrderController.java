@@ -50,6 +50,37 @@ public class MyOrderController {
         return "customer/orders/order-information";
     }
 
+    @GetMapping("/{id}/edit")
+    public String editOrderPage(@PathVariable("id") Long id,
+                                Authentication authentication,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
+        Long userId = requireUserId(authentication);
+        Order order = orderService.getCustomerOrderDetails(id, userId);
+        if (order.getStatus() != com.swd392.onlineshop.enums.OrderStatus.SUBMITTED) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chỉ có thể chỉnh sửa đơn hàng khi chưa được xác nhận.");
+            return "redirect:/my-orders/" + id;
+        }
+        model.addAttribute("order", order);
+        return "customer/orders/order-edit";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String saveEditOrder(@PathVariable("id") Long id,
+                                com.swd392.onlineshop.dto.request.OrderEditRequest form,
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
+        Long userId = requireUserId(authentication);
+        try {
+            orderService.editCustomerOrder(id, userId, form);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật đơn hàng " + id + " thành công!");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/my-orders/" + id + "/edit";
+        }
+        return "redirect:/my-orders/" + id;
+    }
+
     @PostMapping("/{id}/update")
     public String updateOrder(@PathVariable("id") Long id,
                               HttpSession session,
@@ -63,11 +94,12 @@ public class MyOrderController {
 
     @PostMapping("/{id}/cancel")
     public String cancelOrder(@PathVariable("id") Long id,
+                              @RequestParam(value = "cancelReason", required = false) String cancelReason,
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         Long userId = requireUserId(authentication);
-        orderService.cancelOrder(id, userId);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng #" + id + " thành công.");
+        orderService.cancelOrder(id, userId, cancelReason);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng thành công.");
         return "redirect:/my-orders/" + id;
     }
 
