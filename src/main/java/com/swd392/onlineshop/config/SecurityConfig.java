@@ -22,8 +22,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterAfter(new SessionRoleFilter(authService), org.springframework.security.web.context.SecurityContextHolderFilter.class)
-                // Chatbox chi doc du lieu cong khai, khong doi trang thai nguoi dung nen khong can CSRF token.
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/chat"))
+                .csrf(csrf -> csrf
+                        // Tao CSRF token (va session) ngay dau request. Neu de mac dinh (deferred), token chi duoc
+                        // tao khi Thymeleaf render toi form o cuoi trang dai (modal dang nhap), luc do response da
+                        // gui di mot phan nen khong tao duoc session -> trang bi cat ngang, mat ui.js va chatbox.
+                        .csrfTokenRequestHandler(eagerCsrfTokenHandler())
+                        // Chatbox chi doc du lieu cong khai, khong doi trang thai nguoi dung nen khong can CSRF token.
+                        .ignoringRequestMatchers("/api/chat"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
@@ -64,6 +69,13 @@ public class SecurityConfig {
                         .permitAll()
                 );
         return http.build();
+    }
+
+    private static org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler eagerCsrfTokenHandler() {
+        org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler handler =
+                new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler();
+        handler.setCsrfRequestAttributeName(null);
+        return handler;
     }
 
     @Bean
