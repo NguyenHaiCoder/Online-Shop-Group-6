@@ -323,6 +323,39 @@
     </div>
 </div>
 
+<!-- MODAL POPUP KHÔNG THỂ HỦY ĐƠN (media_1794276259940_94056653.jpg) -->
+<div id="cannotCancelOrderModal" class="cannot-cancel-modal-overlay" th:style="${cannotCancelModal} ? 'display: flex;' : 'display: none;'">
+    <div class="cannot-cancel-modal-dialog">
+        <!-- Nút đóng x -->
+        <button type="button" class="cannot-cancel-close-btn" onclick="closeCannotCancelModal()" aria-label="Đóng">&times;</button>
+
+        <!-- Icon cảnh báo tam giác đỏ trong vòng tròn hồng đỏ nhạt -->
+        <div class="cannot-cancel-icon-wrapper">
+            <div class="cannot-cancel-icon-circle">
+                <svg viewBox="0 0 24 24" width="34" height="34" stroke="#ef4444" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Tiêu đề modal -->
+        <h2 class="cannot-cancel-title">Không thể hủy đơn.</h2>
+
+        <!-- Phụ đề thông báo lý do -->
+        <p class="cannot-cancel-subtitle" th:text="${cannotCancelReason != null ? cannotCancelReason : 'Đơn hàng đã được xác nhận nên không thể hủy.'}">Đơn hàng đã được xác nhận nên không thể hủy.</p>
+
+        <!-- Khối hiển thị mã đơn hàng -->
+        <div class="cannot-cancel-code-box">
+            <span class="cannot-cancel-code-text" th:text="${order.code != null ? order.code : ('#' + order.id)}">OD000125</span>
+        </div>
+
+        <!-- Nút Xem trạng thái mới màu đỏ -->
+        <button type="button" class="btn-cannot-cancel-action" onclick="closeCannotCancelModal()">Xem trạng thái mới</button>
+    </div>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 <div th:replace="~{fragments/header :: modals('')}"></div>
 
@@ -343,16 +376,42 @@ function closeCancelModal() {
     }
 }
 
+function openCannotCancelModal(reason) {
+    const modal = document.getElementById('cannotCancelOrderModal');
+    if (modal) {
+        if (reason) {
+            const subtitleEl = modal.querySelector('.cannot-cancel-subtitle');
+            if (subtitleEl) subtitleEl.textContent = reason;
+        }
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeCannotCancelModal() {
+    const modal = document.getElementById('cannotCancelOrderModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        window.location.reload();
+    }
+}
+
 window.addEventListener('click', function(e) {
-    const modal = document.getElementById('cancelOrderModal');
-    if (e.target === modal) {
+    const cancelModal = document.getElementById('cancelOrderModal');
+    if (e.target === cancelModal) {
         closeCancelModal();
+    }
+    const cannotModal = document.getElementById('cannotCancelOrderModal');
+    if (e.target === cannotModal) {
+        closeCannotCancelModal();
     }
 });
 
 window.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCancelModal();
+        closeCannotCancelModal();
     }
 });
 </script>

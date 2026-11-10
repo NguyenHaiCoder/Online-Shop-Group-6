@@ -98,8 +98,13 @@ public class MyOrderController {
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         Long userId = requireUserId(authentication);
-        orderService.cancelOrder(id, userId, cancelReason);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng thành công.");
+        try {
+            orderService.cancelOrder(id, userId, cancelReason);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("cannotCancelModal", true);
+            redirectAttributes.addFlashAttribute("cannotCancelReason", ex.getMessage());
+        }
         return "redirect:/my-orders/" + id;
     }
 

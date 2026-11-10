@@ -428,7 +428,15 @@ public class OrderServiceImpl implements OrderService {
     public void cancelOrder(Long orderId, Long userId, String cancelReason) {
         Order order = getCustomerOrderDetails(orderId, userId);
         if (order.getStatus() != OrderStatus.SUBMITTED) {
-            throw new BusinessException("Chỉ được hủy đơn hàng khi đơn ở trạng thái 'Đã gửi đơn' (SUBMITTED).");
+            String msg = "Đơn hàng đã được xác nhận nên không thể hủy.";
+            if (order.getStatus() == OrderStatus.SHIPPING) {
+                msg = "Đơn hàng đang được giao nên không thể hủy.";
+            } else if (order.getStatus() == OrderStatus.SUCCESS) {
+                msg = "Đơn hàng đã hoàn tất nên không thể hủy.";
+            } else if (order.getStatus() == OrderStatus.CANCELLED) {
+                msg = "Đơn hàng này đã bị hủy trước đó.";
+            }
+            throw new BusinessException(msg);
         }
 
         order.setStatus(OrderStatus.CANCELLED);

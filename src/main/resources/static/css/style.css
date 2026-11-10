@@ -5653,3 +5653,113 @@ th { color: #64748b; font-size: 13px; font-weight: 650; }
     border: 1px solid #bbf7d0;
     color: #15803d;
 }
+
+/* ==========================================================================
+   CANNOT CANCEL ORDER MODAL (media_1794276259940_94056653.jpg)
+   ========================================================================== */
+.cannot-cancel-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.cannot-cancel-modal-dialog {
+    background: #ffffff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 440px;
+    padding: 32px 28px 28px;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cannot-cancel-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.15s;
+}
+
+.cannot-cancel-close-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.cannot-cancel-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.cannot-cancel-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cannot-cancel-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.cannot-cancel-subtitle {
+    font-size: 14px;
+    color: #475569;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.cannot-cancel-code-box {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px 24px;
+    display: inline-block;
+    margin: 0 auto 24px auto;
+    min-width: 180px;
+}
+
+.cannot-cancel-code-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+}
+
+.btn-cannot-cancel-action {
+    width: 100%;
+    background: #e11d48;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-cannot-cancel-action:hover {
+    background: #be123c;
+}
