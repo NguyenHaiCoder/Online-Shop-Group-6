@@ -22,6 +22,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterAfter(new SessionRoleFilter(authService), org.springframework.security.web.context.SecurityContextHolderFilter.class)
+                // Chatbox chi doc du lieu cong khai, khong doi trang thai nguoi dung nen khong can CSRF token.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/chat"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
@@ -30,6 +32,7 @@ public class SecurityConfig {
                                 "/cart/**",
                                 "/feedback/**",
                                 "/auth/**",
+                                "/api/chat",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
