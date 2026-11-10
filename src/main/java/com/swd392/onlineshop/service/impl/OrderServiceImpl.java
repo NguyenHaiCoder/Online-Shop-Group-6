@@ -360,12 +360,47 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public Order getCustomerOrderDetails(Long orderId, Long userId) {
         Customer customer = customerService.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException("Tài khoản chưa có thông tin khách hàng."));
 
-        return orderRepository.findByIdAndCustomerId(orderId, customer.getId())
+        Order order = orderRepository.findByIdAndCustomerId(orderId, customer.getId())
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy đơn hàng hoặc bạn không có quyền xem đơn này."));
+
+        checkAndAutoAdvanceShipping(order);
+        return order;
+    }
+
+    private void checkAndAutoAdvanceShipping(Order order) {
+        if (order != null && order.getStatus() == OrderStatus.SHIPPING && order.getUpdatedAt() != null) {
+            long minutes = java.time.Duration.between(order.getUpdatedAt(), java.time.LocalDateTime.now()).toMinutes();
+            if (minutes >= 5) {
+                order.setStatus(OrderStatus.SUCCESS);
+                orderRepository.save(order);
+                customerService.refreshStatus(order.getCustomer());
+                log.info("Đơn hàng {} tự động chuyển sang SUCCESS (Hoàn tất) sau {} phút.", order.getCode(), minutes);
+            }
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 30000)
+    @Transactional
+    public void autoAdvanceShippingOrders() {
+        try {
+            java.time.LocalDateTime fiveMinutesAgo = java.time.LocalDateTime.now().minusMinutes(5);
+            List<Order> shippingOrders = orderRepository.findByStatusAndUpdatedAtBefore(OrderStatus.SHIPPING, fiveMinutesAgo);
+            if (shippingOrders != null && !shippingOrders.isEmpty()) {
+                for (Order order : shippingOrders) {
+                    order.setStatus(OrderStatus.SUCCESS);
+                    orderRepository.save(order);
+                    customerService.refreshStatus(order.getCustomer());
+                    log.info("Scheduler: Đơn hàng {} đã tự động hoàn tất giao hàng sau 5 phút.", order.getCode());
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Lỗi khi chạy autoAdvanceShippingOrders: {}", ex.getMessage());
+        }
     }
 
     @Override
@@ -398,9 +433,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
         if (cancelReason != null && !cancelReason.isBlank()) {
-            String existingNote = order.getSaleNote();
-            String cancelNote = "Khách hủy đơn. Lý do: " + cancelReason.trim();
-            order.setSaleNote(existingNote != null && !existingNote.isBlank() ? (existingNote + " | " + cancelNote) : cancelNote);
+            order.setSaleNote("Lý do: " + cancelReason.trim());
+        } else {
+            order.setSaleNote("Lý do: Tôi muốn thay đổi nhu cầu mua sắm.");
         }
 
         for (OrderItem item : order.getItems()) {

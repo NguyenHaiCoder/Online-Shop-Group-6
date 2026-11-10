@@ -29,3 +29,4 @@ public class OrderEditRequest {
 
     private List<Integer> quantities = new ArrayList<>();
 }
+

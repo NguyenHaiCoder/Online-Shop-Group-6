@@ -49,115 +49,172 @@
         <section class="my-orders-main">
             <h1 class="main-title">Đơn hàng của tôi</h1>
 
-            <!-- Ô tìm kiếm mã đơn hàng -->
-            <form class="order-search-box" method="get" th:action="@{/my-orders}">
-                <input type="hidden" name="status" th:value="${selectedStatus}">
-                <div class="search-input-wrapper">
-                    <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <!-- TRƯỜNG HỢP: HOÀN TOÀN CHƯA CÓ ĐƠN HÀNG NÀO (Khớp 100% Ảnh 1) -->
+            <div class="empty-orders-view-box" th:if="${(page == null or page.isEmpty()) and (selectedStatus == 'ALL' or selectedStatus == null or selectedStatus == '') and (keyword == null or keyword == '')}">
+                <div class="empty-box-illustration">
+                    <svg viewBox="0 0 240 200" width="190" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 3 tia sáng màu xanh dương trên đầu -->
+                        <path d="M120 18V32" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                        <path d="M86 26L96 37" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                        <path d="M154 26L144 37" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                        
+                        <!-- Bóng đổ mềm mại dưới hộp -->
+                        <ellipse cx="120" cy="174" rx="76" ry="14" fill="#e0e7ff" opacity="0.8"/>
+                        
+                        <!-- Lòng trong hộp (khoang tối) -->
+                        <polygon points="68,90 120,68 172,90 120,112" fill="#93c5fd"/>
+                        
+                        <!-- Mặt trước bên trái hộp -->
+                        <polygon points="68,90 120,112 120,170 68,148" fill="#60a5fa"/>
+                        
+                        <!-- Mặt trước bên phải hộp -->
+                        <polygon points="120,112 172,90 172,148 120,170" fill="#3b82f6"/>
+                        
+                        <!-- Nắp hộp mở sau bên trái -->
+                        <polygon points="68,90 120,68 96,48 44,70" fill="#bfdbfe"/>
+                        
+                        <!-- Nắp hộp mở sau bên phải -->
+                        <polygon points="120,68 172,90 196,70 144,48" fill="#bfdbfe"/>
+                        
+                        <!-- Nắp hộp mở trước bên trái -->
+                        <polygon points="68,90 120,112 96,134 44,112" fill="#bfdbfe" opacity="0.95"/>
+                        
+                        <!-- Nắp hộp mở trước bên phải -->
+                        <polygon points="120,112 172,90 196,112 144,134" fill="#93c5fd" opacity="0.95"/>
                     </svg>
-                    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm mã đơn hàng..." class="search-input">
                 </div>
-            </form>
-
-            <!-- Bộ lọc trạng thái đơn -->
-            <div class="order-tabs">
-                <a class="tab-btn" th:classappend="${selectedStatus == 'ALL'} ? 'active' : ''" th:href="@{/my-orders(status='ALL', keyword=${keyword})}">Tất cả</a>
-                <a class="tab-btn" th:classappend="${selectedStatus == 'SUBMITTED'} ? 'active' : ''" th:href="@{/my-orders(status='SUBMITTED', keyword=${keyword})}">Đã gửi đơn</a>
-                <a class="tab-btn" th:classappend="${selectedStatus == 'CONFIRMED'} ? 'active' : ''" th:href="@{/my-orders(status='CONFIRMED', keyword=${keyword})}">Đã xác nhận</a>
-                <a class="tab-btn" th:classappend="${selectedStatus == 'SHIPPING'} ? 'active' : ''" th:href="@{/my-orders(status='SHIPPING', keyword=${keyword})}">Đang giao</a>
-                <a class="tab-btn" th:classappend="${selectedStatus == 'SUCCESS'} ? 'active' : ''" th:href="@{/my-orders(status='SUCCESS', keyword=${keyword})}">Hoàn tất</a>
-                <a class="tab-btn" th:classappend="${selectedStatus == 'CANCELLED'} ? 'active' : ''" th:href="@{/my-orders(status='CANCELLED', keyword=${keyword})}">Đã hủy</a>
+                <h2 class="empty-orders-heading">Chưa có đơn hàng</h2>
+                <p class="empty-orders-desc">
+                    Bạn chưa có đơn hàng nào. Hãy khám phá các sản phẩm của NOVA SHOP<br>
+                    và bắt đầu mua sắm ngay nhé!
+                </p>
+                <a class="btn-start-shopping" th:href="@{/products}">
+                    <span>Bắt đầu mua sắm</span>
+                    <span class="btn-arrow">&rarr;</span>
+                </a>
             </div>
 
-            <!-- Danh sách đơn hàng -->
-            <div class="orders-list">
-                <!-- Thẻ đơn hàng -->
-                <article class="order-box-card" th:if="${page != null and !page.isEmpty()}" th:each="row : ${page.content}">
-                    <!-- Hàng header đơn hàng -->
-                    <div class="order-box-header">
-                        <div class="order-id-meta">
-                            <span class="order-code" th:text="|Đơn hàng ${row.code != null ? row.code : ('#' + row.id)}|">Đơn hàng OD000125</span>
-                            <span class="meta-divider">|</span>
-                            <span class="order-date" th:text="|Ngày đặt: ${#temporals.format(row.createdAt, 'dd/MM/yyyy')}|">Ngày đặt: 09/11/2026</span>
-                        </div>
-                        <div class="order-status-badge">
-                            <span class="status-pill" th:classappend="${'pill-' + row.status.name()}" th:switch="${row.status.name()}">
-                                <th:block th:case="'SUBMITTED'">Đã gửi đơn</th:block>
-                                <th:block th:case="'CONFIRMED'">Đã xác nhận</th:block>
-                                <th:block th:case="'SHIPPING'">Đang giao</th:block>
-                                <th:block th:case="'SUCCESS'">Hoàn tất</th:block>
-                                <th:block th:case="*">Đã hủy</th:block>
-                            </span>
-                        </div>
+            <!-- TRƯỜNG HỢP: ĐÃ CÓ ĐƠN HOẶC ĐANG LỌC/TÌM KIẾM -->
+            <div th:unless="${(page == null or page.isEmpty()) and (selectedStatus == 'ALL' or selectedStatus == null or selectedStatus == '') and (keyword == null or keyword == '')}">
+                <!-- Ô tìm kiếm mã đơn hàng -->
+                <form class="order-search-box" method="get" th:action="@{/my-orders}">
+                    <input type="hidden" name="status" th:value="${selectedStatus}">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm mã đơn hàng..." class="search-input">
                     </div>
+                </form>
 
-                    <!-- Phần thân: Danh sách sản phẩm bên trái, thông tin thanh toán bên phải -->
-                    <div class="order-box-body">
-                        <!-- Danh sách sản phẩm -->
-                        <div class="order-items-col">
-                            <div class="order-item-row" th:each="item : ${row.items}">
-                                <div class="item-img-container">
-                                    <img th:if="${item.product != null and item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="" class="item-thumbnail">
-                                    <div th:if="${item.product == null or item.product.thumbnail == null}" class="item-img-placeholder">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="#94a3b8" stroke-width="2" fill="none">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                            <polyline points="21 15 16 10 5 21"></polyline>
-                                        </svg>
+                <!-- Bộ lọc trạng thái đơn -->
+                <div class="order-tabs">
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'ALL'} ? 'active' : ''" th:href="@{/my-orders(status='ALL', keyword=${keyword})}">Tất cả</a>
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'SUBMITTED'} ? 'active' : ''" th:href="@{/my-orders(status='SUBMITTED', keyword=${keyword})}">Đã gửi đơn</a>
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'CONFIRMED'} ? 'active' : ''" th:href="@{/my-orders(status='CONFIRMED', keyword=${keyword})}">Đã xác nhận</a>
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'SHIPPING'} ? 'active' : ''" th:href="@{/my-orders(status='SHIPPING', keyword=${keyword})}">Đang giao</a>
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'SUCCESS'} ? 'active' : ''" th:href="@{/my-orders(status='SUCCESS', keyword=${keyword})}">Hoàn tất</a>
+                    <a class="tab-btn" th:classappend="${selectedStatus == 'CANCELLED'} ? 'active' : ''" th:href="@{/my-orders(status='CANCELLED', keyword=${keyword})}">Đã hủy</a>
+                </div>
+
+                <!-- Danh sách đơn hàng -->
+                <div class="orders-list">
+                    <!-- Thẻ đơn hàng -->
+                    <article class="order-box-card" th:if="${page != null and !page.isEmpty()}" th:each="row : ${page.content}">
+                        <!-- Hàng header đơn hàng -->
+                        <div class="order-box-header">
+                            <div class="order-id-meta">
+                                <span class="order-code" th:text="|Đơn hàng ${row.code != null ? row.code : ('#' + row.id)}|">Đơn hàng OD000125</span>
+                                <span class="meta-divider">|</span>
+                                <span class="order-date" th:text="|Ngày đặt: ${#temporals.format(row.createdAt, 'dd/MM/yyyy')}|">Ngày đặt: 09/11/2026</span>
+                            </div>
+                            <div class="order-status-badge">
+                                <span class="status-pill" th:classappend="${'pill-' + row.status.name()}" th:switch="${row.status.name()}">
+                                    <th:block th:case="'SUBMITTED'">Đã gửi đơn</th:block>
+                                    <th:block th:case="'CONFIRMED'">Đã xác nhận</th:block>
+                                    <th:block th:case="'SHIPPING'">Đang giao</th:block>
+                                    <th:block th:case="'SUCCESS'">Hoàn tất</th:block>
+                                    <th:block th:case="*">Đã hủy</th:block>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Phần thân: Danh sách sản phẩm bên trái, thông tin thanh toán bên phải -->
+                        <div class="order-box-body">
+                            <!-- Danh sách sản phẩm -->
+                            <div class="order-items-col">
+                                <div class="order-item-row" th:each="item : ${row.items}">
+                                    <div class="item-img-container">
+                                        <img th:if="${item.product != null and item.product.thumbnail != null}" th:src="${item.product.thumbnail}" alt="" class="item-thumbnail">
+                                        <div th:if="${item.product == null or item.product.thumbnail == null}" class="item-img-placeholder">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="#94a3b8" stroke-width="2" fill="none">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                <polyline points="21 15 16 10 5 21"></polyline>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="item-details">
+                                        <h4 class="item-name" th:text="${item.productName}">Bàn phím cơ Nova K68</h4>
+                                        <div class="item-code" th:if="${item.productCode != null}" th:text="${item.productCode}">KB001</div>
+                                        <div class="item-qty" th:text="|Số lượng: ${item.quantity}|">Số lượng: 1</div>
                                     </div>
                                 </div>
-                                <div class="item-details">
-                                    <h4 class="item-name" th:text="${item.productName}">Bàn phím cơ Nova K68</h4>
-                                    <div class="item-code" th:if="${item.productCode != null}" th:text="${item.productCode}">KB001</div>
-                                    <div class="item-qty" th:text="|Số lượng: ${item.quantity}|">Số lượng: 1</div>
+                            </div>
+
+                            <!-- Cột giá và nút Xem chi tiết -->
+                            <div class="order-summary-col">
+                                <div class="summary-breakdown" th:if="${row.shippingFee != null and row.shippingFee > 0}">
+                                    <div class="summary-row">
+                                        <span class="sub-label">Tạm tính</span>
+                                        <span class="sub-value"><span th:replace="~{fragments/header :: vnd(${row.totalAmount.subtract(row.shippingFee)})}">980.000 ₫</span></span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span class="sub-label">Phí vận chuyển</span>
+                                        <span class="sub-value"><span th:replace="~{fragments/header :: vnd(${row.shippingFee})}">30.000 ₫</span></span>
+                                    </div>
                                 </div>
+
+                                <div class="total-row">
+                                    <span class="total-label">Tổng thanh toán</span>
+                                    <span class="total-amount"><span th:replace="~{fragments/header :: vnd(${row.totalAmount})}">1.010.000 ₫</span></span>
+                                </div>
+
+                                <a class="btn-detail-link" th:href="@{|/my-orders/${row.id}|}">
+                                    <span>Xem chi tiết</span>
+                                    <span class="arrow-icon">&rarr;</span>
+                                </a>
                             </div>
                         </div>
+                    </article>
 
-                        <!-- Cột giá và nút Xem chi tiết -->
-                        <div class="order-summary-col">
-                            <div class="summary-breakdown" th:if="${row.shippingFee != null and row.shippingFee > 0}">
-                                <div class="summary-row">
-                                    <span class="sub-label">Tạm tính</span>
-                                    <span class="sub-value"><span th:replace="~{fragments/header :: vnd(${row.totalAmount.subtract(row.shippingFee)})}">980.000 ₫</span></span>
-                                </div>
-                                <div class="summary-row">
-                                    <span class="sub-label">Phí vận chuyển</span>
-                                    <span class="sub-value"><span th:replace="~{fragments/header :: vnd(${row.shippingFee})}">30.000 ₫</span></span>
-                                </div>
-                            </div>
-
-                            <div class="total-row">
-                                <span class="total-label">Tổng thanh toán</span>
-                                <span class="total-amount"><span th:replace="~{fragments/header :: vnd(${row.totalAmount})}">1.010.000 ₫</span></span>
-                            </div>
-
-                            <a class="btn-detail-link" th:href="@{|/my-orders/${row.id}|}">
-                                <span>Xem chi tiết</span>
-                                <span class="arrow-icon">→</span>
-                            </a>
+                    <!-- Trạng thái trống khi lọc không thấy -->
+                    <div class="empty-orders-view-box in-filter" th:if="${page == null or page.isEmpty()}">
+                        <div class="empty-box-illustration">
+                            <svg viewBox="0 0 240 200" width="140" height="120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M120 18V32" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                                <path d="M86 26L96 37" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                                <path d="M154 26L144 37" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+                                <ellipse cx="120" cy="174" rx="76" ry="14" fill="#e0e7ff" opacity="0.8"/>
+                                <polygon points="68,90 120,68 172,90 120,112" fill="#93c5fd"/>
+                                <polygon points="68,90 120,112 120,170 68,148" fill="#60a5fa"/>
+                                <polygon points="120,112 172,90 172,148 120,170" fill="#3b82f6"/>
+                                <polygon points="68,90 120,68 96,48 44,70" fill="#bfdbfe"/>
+                                <polygon points="120,68 172,90 196,70 144,48" fill="#bfdbfe"/>
+                                <polygon points="68,90 120,112 96,134 44,112" fill="#bfdbfe" opacity="0.95"/>
+                                <polygon points="120,112 172,90 196,112 144,134" fill="#93c5fd" opacity="0.95"/>
+                            </svg>
                         </div>
+                        <h2 class="empty-orders-heading">Chưa có đơn hàng</h2>
+                        <p class="empty-orders-desc">Không tìm thấy đơn hàng nào phù hợp với bộ lọc hiện tại.</p>
+                        <a class="btn-start-shopping" th:href="@{/my-orders}">Xem tất cả đơn hàng</a>
                     </div>
-                </article>
-
-                <!-- Trạng thái trống: Chưa có đơn nào -->
-                <div class="empty-orders-card" th:if="${page == null or page.isEmpty()}">
-                    <div class="empty-icon-circle">
-                        <svg viewBox="0 0 24 24" width="40" height="40" stroke="#94a3b8" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                        </svg>
-                    </div>
-                    <h3 class="empty-title">Chưa có đơn nào</h3>
-                    <p class="empty-desc">Bạn chưa có đơn hàng nào trong mục này.</p>
-                    <a class="btn-shop-now" th:href="@{/products}">Khám phá sản phẩm ngay</a>
                 </div>
-            </div>
 
-            <!-- Phân trang -->
-            <nav th:if="${page != null and page.totalPages > 1}" th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+                <!-- Phân trang -->
+                <nav th:if="${page != null and page.totalPages > 1}" th:replace="~{fragments/pagination :: pager(${page})}"></nav>
+            </div>
         </section>
     </div>
 </main>

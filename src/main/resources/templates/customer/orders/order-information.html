@@ -18,7 +18,7 @@
         <!-- Header hàng trên: Nút quay lại + Tiêu đề đơn hàng + Badge trạng thái -->
         <div class="order-detail-top-bar">
             <a class="btn-back-outline" th:href="@{/my-orders}">
-                <span class="back-arrow">←</span>
+                <span class="back-arrow">&larr;</span>
                 <span>Quay lại danh sách đơn hàng</span>
             </a>
             <div class="order-title-group">
@@ -33,11 +33,26 @@
             </div>
         </div>
 
-        <!-- Card Tiến trình đơn hàng (Stepper 4 bước) -->
-        <div class="order-card order-stepper-card" th:classappend="${'step-state-' + order.status.name().toLowerCase()}">
+        <!-- TRƯỜNG HỢP 1: ĐƠN HÀNG ĐÃ HỦY (Ảnh 2: media_1794275401177_b17c3a5e.jpg) -->
+        <div class="order-cancelled-banner-box" th:if="${order.status.name() == 'CANCELLED'}">
+            <div class="cancel-banner-icon-circle">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            </div>
+            <div class="cancel-banner-text-block">
+                <h4 class="cancel-banner-title" th:text="|Đã hủy lúc ${#temporals.format(order.updatedAt, 'HH:mm')} ngày ${#temporals.format(order.updatedAt, 'dd/MM/yyyy')}|">Đã hủy lúc 10:30 ngày 09/11/2026</h4>
+                <p class="cancel-banner-reason-msg" th:text="${order.saleNote != null and !order.saleNote.isBlank() ? order.saleNote : 'Lý do: Tôi muốn thay đổi nhu cầu mua sắm.'}">Lý do: Tôi muốn thay đổi nhu cầu mua sắm.</p>
+            </div>
+        </div>
+
+        <!-- TRƯỜNG HỢP 2: TIẾN TRÌNH ĐƠN HÀNG (STEPPER 4 BƯỚC CHO CÁC TRẠNG THÁI KHÁC) -->
+        <div class="order-card order-stepper-card" th:unless="${order.status.name() == 'CANCELLED'}" th:classappend="${'stepper-' + order.status.name().toLowerCase()}">
             <div class="stepper-track">
                 <!-- Bước 1: Đã gửi đơn -->
-                <div class="stepper-step" th:classappend="${order.status.name() != 'CANCELLED'} ? 'is-active is-completed' : 'is-cancelled'">
+                <div class="stepper-step is-active" th:classappend="${order.status.name() == 'SUCCESS' ? 'step-green' : 'step-orange'}">
                     <div class="step-circle">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -47,46 +62,50 @@
                 </div>
 
                 <!-- Vạch nối 1 - 2 -->
-                <div class="stepper-line" th:classappend="${order.status.name() == 'SUBMITTED' ? 'line-half' : (order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS' ? 'line-filled' : '')}"></div>
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SUBMITTED' ? 'line-half-orange' : (order.status.name() == 'SUCCESS' ? 'line-full-green' : 'line-full-orange')}"></div>
 
                 <!-- Bước 2: Đã xác nhận -->
-                <div class="stepper-step" th:classappend="${order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                <div class="stepper-step" th:classappend="${order.status.name() == 'CONFIRMED' ? 'is-active step-blue' : (order.status.name() == 'SHIPPING' ? 'is-active step-orange' : (order.status.name() == 'SUCCESS' ? 'is-active step-green' : ''))}">
                     <div class="step-circle">
-                        <span th:if="${order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'}">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </span>
+                        <svg th:if="${order.status.name() == 'CONFIRMED' || order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'}" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                     <div class="step-label">Đã xác nhận</div>
                 </div>
 
                 <!-- Vạch nối 2 - 3 -->
-                <div class="stepper-line" th:classappend="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'line-filled' : ''"></div>
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SHIPPING' ? 'line-full-orange' : (order.status.name() == 'SUCCESS' ? 'line-full-green' : '')}"></div>
 
                 <!-- Bước 3: Đang giao -->
-                <div class="stepper-step" th:classappend="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                <div class="stepper-step" th:classappend="${order.status.name() == 'SHIPPING' ? 'is-active step-purple' : (order.status.name() == 'SUCCESS' ? 'is-active step-green' : '')}">
                     <div class="step-circle">
-                        <span th:if="${order.status.name() == 'SHIPPING' || order.status.name() == 'SUCCESS'}">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
+                        <!-- Icon xe tải khi đang giao -->
+                        <span th:if="${order.status.name() == 'SHIPPING'}" class="truck-icon-wrap">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
                             </svg>
                         </span>
+                        <!-- Check icon khi hoàn tất -->
+                        <svg th:if="${order.status.name() == 'SUCCESS'}" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                     <div class="step-label">Đang giao</div>
                 </div>
 
                 <!-- Vạch nối 3 - 4 -->
-                <div class="stepper-line" th:classappend="${order.status.name() == 'SUCCESS'} ? 'line-filled' : ''"></div>
+                <div class="stepper-line" th:classappend="${order.status.name() == 'SUCCESS' ? 'line-full-green' : ''}"></div>
 
                 <!-- Bước 4: Hoàn tất -->
-                <div class="stepper-step" th:classappend="${order.status.name() == 'SUCCESS'} ? 'is-active is-completed' : ''">
+                <div class="stepper-step" th:classappend="${order.status.name() == 'SUCCESS' ? 'is-active step-green' : ''}">
                     <div class="step-circle">
-                        <span th:if="${order.status.name() == 'SUCCESS'}">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </span>
+                        <svg th:if="${order.status.name() == 'SUCCESS'}" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                     </div>
                     <div class="step-label">Hoàn tất</div>
                 </div>
@@ -127,7 +146,7 @@
             </div>
         </div>
 
-        <!-- Bố cục 2 cột: Cột trái (Bảng sản phẩm, ghi chú, nút hành động) - Cột phải (Tóm tắt, phương thức thanh toán) -->
+        <!-- Bố cục 2 cột: Cột trái (Bảng sản phẩm, thông báo, nút) - Cột phải (Tóm tắt, thanh toán) -->
         <div class="order-content-layout">
             <!-- CỘT TRÁI -->
             <div class="order-left-column">
@@ -176,16 +195,47 @@
                     </table>
                 </div>
 
-                <!-- Ghi chú đơn hàng (nếu có) -->
-                <div class="order-note-alert" th:if="${order.note != null and !order.note.isBlank()}">
+                <!-- BANNER THÔNG BÁO TÙY THEO TRẠNG THÁI ĐƠN HÀNG -->
+                <!-- 1. Khi đơn ở trạng thái SUBMITTED: Hiển thị ghi chú của khách (nếu có) -->
+                <div class="order-note-alert" th:if="${order.status.name() == 'SUBMITTED' and order.note != null and !order.note.isBlank()}">
                     <span class="note-info-icon">ⓘ</span>
                     <span class="note-info-text" th:text="${order.note}">Giao hàng trong giờ hành chính.</span>
                 </div>
 
-                <!-- Hàng nút Sửa đơn & Hủy đơn (chỉ hiển thị khi đơn ở trạng thái SUBMITTED) -->
+                <!-- 2. Khi đơn ở trạng thái CONFIRMED (Ảnh 4) -->
+                <div class="order-status-notice-alert notice-blue" th:if="${order.status.name() == 'CONFIRMED'}">
+                    <span class="notice-icon">ⓘ</span>
+                    <span class="notice-text">Đơn hàng đã được xác nhận nên không thể chỉnh sửa hoặc hủy.</span>
+                </div>
+
+                <!-- 3. Khi đơn ở trạng thái SHIPPING (Ảnh 5) -->
+                <div class="order-status-notice-alert notice-purple" th:if="${order.status.name() == 'SHIPPING'}">
+                    <span class="notice-icon">ⓘ</span>
+                    <span class="notice-text">Đơn hàng đang được giao nên không thể chỉnh sửa hoặc hủy.</span>
+                </div>
+
+                <!-- 4. Khi đơn ở trạng thái SUCCESS (Ảnh 3) -->
+                <div class="order-status-notice-alert notice-green" th:if="${order.status.name() == 'SUCCESS'}">
+                    <span class="notice-icon">ⓘ</span>
+                    <span class="notice-text">Đơn hàng đã hoàn tất. Không thể chỉnh sửa hoặc hủy.</span>
+                </div>
+
+                <!-- 5. Khi đơn ở trạng thái CANCELLED (Ảnh 2): Hiển thị ghi chú lúc đặt (nếu có) -->
+                <div class="order-note-alert" th:if="${order.status.name() == 'CANCELLED' and order.note != null and !order.note.isBlank()}">
+                    <span class="note-info-icon">ⓘ</span>
+                    <span class="note-info-text" th:text="${order.note}">Giao hàng trong giờ hành chính.</span>
+                </div>
+
+                <!-- HÀNG NÚT HÀNH ĐỘNG TÙY THEO TRẠNG THÁI -->
+                <!-- A. Khi SUBMITTED: Có 2 nút Sửa đơn & Hủy đơn -->
                 <div class="order-action-buttons" th:if="${order.status.name() == 'SUBMITTED'}">
                     <a class="btn-action-edit" th:href="@{|/my-orders/${order.id}/edit|}">Sửa đơn</a>
                     <button type="button" class="btn-action-cancel" onclick="openCancelModal()">Hủy đơn</button>
+                </div>
+
+                <!-- B. Khi CANCELLED (Ảnh 2): Nút xanh Quay lại danh sách đơn hàng -->
+                <div class="order-action-buttons" th:if="${order.status.name() == 'CANCELLED'}">
+                    <a class="btn-action-edit" th:href="@{/my-orders}">Quay lại danh sách đơn hàng</a>
                 </div>
             </div>
 
@@ -227,7 +277,7 @@
     </div>
 </main>
 
-<!-- MODAL POPUP HỦY ĐƠN HÀNG (Ảnh 3) -->
+<!-- MODAL POPUP HỦY ĐƠN HÀNG (Ảnh 3 lượt trước) -->
 <div id="cancelOrderModal" class="cancel-modal-overlay" style="display: none;">
     <div class="cancel-modal-dialog">
         <!-- Nút đóng x -->
@@ -293,7 +343,6 @@ function closeCancelModal() {
     }
 }
 
-// Đóng modal khi click ra ngoài vùng backdrop
 window.addEventListener('click', function(e) {
     const modal = document.getElementById('cancelOrderModal');
     if (e.target === modal) {
@@ -301,7 +350,6 @@ window.addEventListener('click', function(e) {
     }
 });
 
-// Đóng modal khi nhấn Escape
 window.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCancelModal();

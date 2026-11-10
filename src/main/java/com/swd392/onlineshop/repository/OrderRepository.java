@@ -66,4 +66,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
         ORDER BY COALESCE(MAX(o.createdAt), '1970-01-01') ASC, u.id ASC
     """)
     List<Long> findRoundRobinSaleCandidates();
+
+    List<Order> findByStatusAndUpdatedAtBefore(OrderStatus status, java.time.LocalDateTime time);
 }
