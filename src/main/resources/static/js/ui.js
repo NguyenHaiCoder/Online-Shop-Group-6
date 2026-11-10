@@ -1,9 +1,23 @@
+// Moi trang nap ui.js deu tu co chatbox tro ly ao (js/chatbox.js) o goc phai duoi.
+(function () {
+    var self = document.currentScript;
+    if (!self || !self.src || !document.body || document.getElementById("chatbox-loader")) {
+        return;
+    }
+    var loader = document.createElement("script");
+    loader.id = "chatbox-loader";
+    loader.src = self.src.replace(/ui\.js(\?.*)?$/, "chatbox.js");
+    loader.defer = true;
+    document.body.appendChild(loader);
+})();
+
 document.addEventListener("click", function (event) {
     var opener = event.target.closest("[data-open]");
     if (opener) {
-        event.preventDefault();
         var modal = document.getElementById("modal-" + opener.getAttribute("data-open"));
         if (modal) {
+            // Co modal thi mo modal; khong co thi de link di toi trang /auth/login hoac /auth/register.
+            event.preventDefault();
             modal.classList.add("is-open");
         }
     }
